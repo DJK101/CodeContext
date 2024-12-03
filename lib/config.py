@@ -40,7 +40,7 @@ class Config:
     server_c: ServerConfig
     logging_c: LoggingConfig
 
-    def __init__(self, script_path: str = None, config_path: str = None):
+    def __init__(self, script_path: str = None):
         if script_path:
             self._set_working_directory(script_path)
         

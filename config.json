@@ -6,13 +6,13 @@
     "console": {
       "enabled": true,
       "level": "DEBUG",
-      "format": "%(filename)s: %(message)s",
+      "format": "%(levelname).1s:[%(name)s]> %(message)s",
       "date_format": "%YYYY-%M-%D"
     },
     "file": {
       "enabled": true,
       "level": "WARNING",
-      "format": "%(filename)s: %(message)s",
+      "format": "%(levelname).1s:[%(name)s]> %(message)s",
       "date_format": "%YYYY-%M-%D",
       "output_dir": "logs",
       "filename": "app.log",
