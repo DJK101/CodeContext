@@ -9,7 +9,7 @@ import colorlog
 
 @dataclass
 class ServerConfig:
-    port: int = 6969
+    port: int = 5050
 
 
 @dataclass
@@ -17,15 +17,15 @@ class ConsoleLoggingConfig:
     enabled: bool = True
     level: str = "WARNING"
     format: str = "%(levelname).1s:[%(name)s]> %(message)s",
-    date_format: str = ""
+    date_format: str = "%Y-%m-%d %H:%M:%S"
 
 
 @dataclass
 class FileLoggingConfig(ConsoleLoggingConfig):
-    output_dir: str
-    filename: str
-    max_bytes: int
-    backup_count: int
+    output_dir: str = "logs"
+    filename: str = "app.log"
+    max_bytes: int = 10485760
+    backup_count: int = 5
 
 
 @dataclass
