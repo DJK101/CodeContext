@@ -12,10 +12,6 @@ app = Flask(__name__)
 
 @app.route("/")
 def index():
-    with BlockTimer():
-        logging.info("Test message, 10,000 for loop")
-        for i in range(10000):
-            x = i + 1
     return {"status": "success", "message": "Hello, World!"}, 200
 
 
