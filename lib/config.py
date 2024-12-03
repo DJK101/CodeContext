@@ -6,6 +6,8 @@ from dataclasses import dataclass
 
 import colorlog
 
+import constants
+
 
 @dataclass
 class ServerConfig:
@@ -38,10 +40,14 @@ class Config:
     server_c: ServerConfig
     logging_c: LoggingConfig
 
-    def __init__(self, script_path: str = None, config_path: str = "config.json"):
+    def __init__(self, script_path: str = None, config_path: str = None):
         if script_path:
             self._set_working_directory(script_path)
-        self._config = self._load_config(config_path)
+        
+        if os.path.exists(constants.CONFIG_FILE):
+            self._config = self._load_config(constants.CONFIG_FILE)
+        else:
+            self._config = self._load_config(constants.LOCAL_CONFIG_FILE)
 
         server_config_dict = self._config.get("server", {})
         self.server_c = ServerConfig(**server_config_dict)
