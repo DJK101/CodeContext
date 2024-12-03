@@ -5,7 +5,9 @@ import json
 import datetime
 from lib.block_timer import BlockTimer
 from lib.data_snapshot import DataSnapshot
+from lib.config import Config
 
+config = Config(__file__)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
@@ -20,17 +22,8 @@ def index():
     return {"status": "success", "message": "Hello, World!"}, 200
 
 
-def load_config():
-    try:
-        with open("config.json") as config_file:
-            config = json.load(config_file)
-        logging.info("Configuration loaded from config.json")
-    except (FileNotFoundError, json.JSONDecodeError) as e:
-        logging.error("Error loading config.json: %s", e)
-        config = {}
-    return config
-
 if __name__ == "__main__":
-    config = load_config()
-    port = config.get("port", 5000)
-    app.run(host="0.0.0.0", port=port)
+    print("%(levelname).1s:[%(name)s]> %(message)s")
+    logger.info("Running app on port: %s", config.server_c.port)
+    app.run(host="0.0.0.0", port=config.server_c.port)
+    logger.info("App run successfully")
