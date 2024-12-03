@@ -7,3 +7,5 @@ __pycache__/
 local.config.json
 
 logs/
+
+*.sqlite3
