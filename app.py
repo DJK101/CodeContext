@@ -11,11 +11,11 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 
 
-@app.route("/")
+@app.route("/", methods=["GET"])
 def index():
     return {"status": "success", "message": "Hello, World!"}, HTTP.OK
 
-@app.route("/timer")
+@app.route("/timer", methods=["GET"])
 def timer():
     with BlockTimer():
         for i in range(1000000):
