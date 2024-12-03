@@ -6,7 +6,7 @@ from dataclasses import dataclass
 
 import colorlog
 
-import constants
+from lib.constants import CONFIG_FILE, LOCAL_CONFIG_FILE
 
 
 @dataclass
@@ -44,10 +44,10 @@ class Config:
         if script_path:
             self._set_working_directory(script_path)
         
-        if os.path.exists(constants.CONFIG_FILE):
-            self._config = self._load_config(constants.CONFIG_FILE)
+        if os.path.exists(LOCAL_CONFIG_FILE):
+            self._config = self._load_config(LOCAL_CONFIG_FILE)
         else:
-            self._config = self._load_config(constants.LOCAL_CONFIG_FILE)
+            self._config = self._load_config(CONFIG_FILE)
 
         server_config_dict = self._config.get("server", {})
         self.server_c = ServerConfig(**server_config_dict)
