@@ -12,8 +12,8 @@
     "file": {
       "enabled": true,
       "level": "WARNING",
-      "format": "%(levelname).1s:[%(name)s]> %(message)s",
-      "date_format": "%YYYY-%M-%D",
+      "format": "%(asctime)s -%(levelname)s - %(name)s -  %(pathname)s:%(lineno)d - %(message)s",
+      "date_format": "%YYYY-%m-%d",
       "output_dir": "logs",
       "filename": "app.log",
       "max_bytes": 10485760,
