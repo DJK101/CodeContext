@@ -1,15 +1,12 @@
-from flask import Flask, jsonify
-from flask_caching import Cache
 import logging
-import json
-import datetime
+
+from flask import Flask
+
 from lib.block_timer import BlockTimer
-from lib.data_snapshot import DataSnapshot
 from lib.config import Config
 
 config = Config(__file__)
 logger = logging.getLogger(__name__)
-
 app = Flask(__name__)
 
 
