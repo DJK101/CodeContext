@@ -20,7 +20,6 @@ def index():
 
 
 if __name__ == "__main__":
-    print("%(levelname).1s:[%(name)s]> %(message)s")
     logger.info("Running app on port: %s", config.server_c.port)
     app.run(host="0.0.0.0", port=config.server_c.port)
     logger.info("App run successfully")
