@@ -1,3 +1,22 @@
 {
-    "port": 5001
+  "server": {
+  },
+  "logging": {
+    "console": {
+      "enabled": true,
+      "level": "DEBUG",
+      "format": "%(filename)s: %(message)s",
+      "date_format": "%YYYY-%M-%D"
+    },
+    "file": {
+      "enabled": true,
+      "level": "WARNING",
+      "format": "%(filename)s: %(message)s",
+      "date_format": "%YYYY-%M-%D",
+      "output_dir": "logs",
+      "filename": "app.log",
+      "max_bytes": 10485760,
+      "backup_count": 5
+    }
+  }
 }
