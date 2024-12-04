@@ -10,5 +10,4 @@ class ANSIColorStripperFilter(logging.Filter):
         """
         ansi_escape = re.compile(r"(?:\x1B[@-Z\\-_]|\x1B\[[0-?]*[ -/]*[@-~])")
         record.message = ansi_escape.sub("", record.getMessage())
-        print(record.message)
         return True
