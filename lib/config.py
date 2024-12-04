@@ -15,6 +15,7 @@ from lib.sqlalchemy_handler import SQLAlchemyHandler
 class ServerConfig:
     port: int = 5050
 
+
 @dataclass
 class DatabaseConfig:
     connection_string: str = "sqlite:///dev.db"
@@ -34,6 +35,7 @@ class FileLoggingConfig(ConsoleLoggingConfig):
     filename: str = "app.log"
     max_bytes: int = 10485760
     backup_count: int = 5
+
 
 @dataclass
 class DatabaseLoggingConfig(ConsoleLoggingConfig):
@@ -71,7 +73,7 @@ class Config:
         self.logging_c = LoggingConfig(
             console=ConsoleLoggingConfig(**logging_config_dict.get("console", {})),
             file=FileLoggingConfig(**logging_config_dict.get("file", {})),
-            db=DatabaseLoggingConfig(**logging_config_dict.get("db", {}))
+            db=DatabaseLoggingConfig(**logging_config_dict.get("db", {})),
         )
         self._setup_logging()
 
@@ -91,10 +93,10 @@ class Config:
         root_level = logging.NOTSET
         enabled_levels: list[int] = []
         if self.logging_c.console.enabled:
-            logging_num = logging.getLevelName(self.logging_c.console.level) # type: ignore
+            logging_num = logging.getLevelName(self.logging_c.console.level)  # type: ignore
             enabled_levels.append(logging_num)
         if self.logging_c.file.enabled:
-            logging_num = logging.getLevelName(self.logging_c.file.level) # type: ignore
+            logging_num = logging.getLevelName(self.logging_c.file.level)  # type: ignore
             enabled_levels.append(logging_num)
         if enabled_levels:
             root_level = min(enabled_levels)
