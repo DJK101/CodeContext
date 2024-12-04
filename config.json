@@ -18,6 +18,9 @@
       "filename": "app.log",
       "max_bytes": 10485760,
       "backup_count": 5
+    },
+    "db": {
+      "enabled": true
     }
   }
 }
