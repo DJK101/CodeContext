@@ -7,13 +7,13 @@
       "enabled": true,
       "level": "DEBUG",
       "format": "%(levelname).1s:[%(name)s]> %(message)s",
-      "date_format": "%YYYY-%M-%D"
+      "date_format": "%Y-%M-%D %H:%M:%S"
     },
     "file": {
       "enabled": true,
       "level": "WARNING",
       "format": "%(asctime)s -%(levelname)s - %(name)s -  %(pathname)s:%(lineno)d - %(message)s",
-      "date_format": "%YYYY-%m-%d",
+      "date_format": "%Y-%M-%D %H:%M:%S",
       "output_dir": "logs",
       "filename": "app.log",
       "max_bytes": 10485760,
