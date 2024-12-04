@@ -24,7 +24,7 @@ class DatabaseConfig:
 @dataclass
 class ConsoleLoggingConfig:
     enabled: bool = True
-    level: str = "WARNING"
+    level: str = "DEBUG"
     format: str = "%(levelname).1s:[%(name)s]> %(message)s"
     date_format: str = "%Y-%m-%d %H:%M:%S"
 
