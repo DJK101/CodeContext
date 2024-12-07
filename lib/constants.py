@@ -6,4 +6,11 @@ LOCAL_CONFIG_FILE = "local.config.json"
 
 @dataclass
 class HTTP:
-    OK = 200
+    @dataclass
+    class STATUS:
+        OK = 200
+        BAD_REQUEST = 400
+    
+    @dataclass
+    class METHOD:
+        GET = "GET"

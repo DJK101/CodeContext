@@ -15,18 +15,20 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 
 
-@app.route("/", methods=["GET"])
+@app.route("/", methods=[HTTP.METHOD.GET])
 def index():
-    return {"status": "success", "message": "Hello, World!"}, HTTP.OK
+    return {"message": "Hello, World!"}, HTTP.STATUS.OK
 
 
-@app.route("/timer", methods=["GET"])
+@app.route("/timer", methods=[HTTP.METHOD.GET])
 def timer():
-    with BlockTimer():
+    time = 0
+    with BlockTimer() as bt:
         for i in range(1000000):
             x = i + 1
             x = x + 1
-    return {"status": "success"}, HTTP.OK
+            time = bt.end_time - bt.start_time
+    return {"message": ("executed in %s nanonseconds", time)}, HTTP.STATUS.OK
 
 
 @app.route("/db")
@@ -37,7 +39,21 @@ def db_test() -> tuple[dict[str, Any], int]:
     with Session(engine) as session:
         logs = session.query(Log).all()
         logs_list = [log.as_dict() for log in logs]
-    return {"status": "success", "logs": logs_list}, HTTP.OK
+    return {"logs": logs_list}, HTTP.STATUS.OK
+
+
+@app.route("/test/<string:log_type>", methods=[HTTP.METHOD.GET])
+def log_test(log_type: str):
+    match log_type:
+        case "INFO":
+            logger.info("Test info log")
+        case "WARNING":
+            logger.warning("Test warning log")
+        case "ERROR":
+            logger.error("Test error log")
+        case _:
+            return {"message": "invlaid log type"}, HTTP.STATUS.BAD_REQUEST
+    return {"logtype": log_type}, HTTP.STATUS.OK
 
 
 if __name__ == "__main__":
