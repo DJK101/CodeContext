@@ -3,7 +3,7 @@ from typing import Any
 
 from flask import Flask
 from sqlalchemy import create_engine
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import sessionmaker
 
 from lib.block_timer import BlockTimer
 from lib.config import Config
@@ -13,6 +13,10 @@ from lib.models import Base, Log
 config = Config(__file__)
 logger = logging.getLogger(__name__)
 app = Flask(__name__)
+
+engine = create_engine("sqlite:///dev.db")
+Base.metadata.create_all(engine)
+Session = sessionmaker(engine)
 
 
 @app.route("/", methods=[HTTP.METHOD.GET])
@@ -33,12 +37,10 @@ def timer():
 
 @app.route("/db")
 def db_test() -> tuple[dict[str, Any], int]:
-    logger.warning("Test log")
-    engine = create_engine("sqlite:///dev.db")
-    Base.metadata.create_all(engine)
-    with Session(engine) as session:
+    with Session.begin() as session:
         logs = session.query(Log).all()
         logs_list = [log.as_dict() for log in logs]
+
     return {"logs": logs_list}, HTTP.STATUS.OK
 
 
