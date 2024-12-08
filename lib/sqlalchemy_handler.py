@@ -24,6 +24,6 @@ class SQLAlchemyHandler(logging.Handler):
                 source=record.name,
                 created_time=datetime.fromtimestamp(record.created),
                 message=record.message,
-                level=record.levelname,
+                level=record.levelno,
             )
             session.add(log)
