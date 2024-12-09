@@ -1,9 +1,15 @@
-from datetime import datetime
 import logging
-from typing import Any
+from datetime import datetime
+from typing import Any, List
 
-from sqlalchemy import DateTime, Integer, String
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, validates
+from sqlalchemy import DateTime, ForeignKey, Integer, String
+from sqlalchemy.orm import (
+    DeclarativeBase,
+    Mapped,
+    mapped_column,
+    relationship,
+    validates,
+)
 
 
 class Base(DeclarativeBase):
@@ -13,7 +19,7 @@ class Base(DeclarativeBase):
 class Log(Base):
     __tablename__ = "log"
 
-    id: Mapped[int] = mapped_column(primary_key=True, nullable=False)
+    id: Mapped[int] = mapped_column(primary_key=True)
     source: Mapped[str] = mapped_column(String(64))
     created_time: Mapped[datetime] = mapped_column(DateTime)
     message: Mapped[str] = mapped_column(String(256))
@@ -44,3 +50,28 @@ class Device(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(64))
+    cores: Mapped[int] = mapped_column(Integer)
+    ram_total_kb: Mapped[int] = mapped_column(Integer)
+    disk_total_kb: Mapped[int] = mapped_column(Integer)
+    metrics: Mapped[List["DeviceMetric"]] = relationship(
+        cascade="all, delete-orphan"
+    )
+
+
+class DeviceMetric(Base):
+    __tablename__ = "device_metric"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    device_id: Mapped[int] = mapped_column(ForeignKey("device.id"))
+    recorded_time: Mapped[datetime] = mapped_column(DateTime)
+    ram_usage_kb: Mapped[int] = mapped_column(Integer)
+    disk_usage_kb: Mapped[int] = mapped_column(Integer)
+
+    def as_dict(self) -> dict[str, str | int]:
+        return {
+            "id": self.id,
+            "device_id": self.device_id,
+            "recorded_time": self.recorded_time.isoformat(),
+            "ram_usage_kb": self.ram_usage_kb,
+            "disk_usage_kb": self.disk_usage_kb,
+        }
