@@ -1,14 +1,14 @@
 import logging
-from typing import Any
+from typing import Any, List
 
-from flask import Flask
-from sqlalchemy import create_engine
+from flask import Flask, request
+from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker
 
 from lib.block_timer import BlockTimer
 from lib.config import Config
 from lib.constants import HTTP
-from lib.models import Base, Log
+from lib.models import Base, DeviceMetric, Log, Device
 
 config = Config(__file__)
 logger = logging.getLogger(__name__)
@@ -58,7 +58,69 @@ def log_test(log_type: str):
     return {"logtype": log_type}, HTTP.STATUS.OK
 
 
+@app.route("/device/<int:id>", methods=[HTTP.METHOD.PUT])
+def create_device(id: int):
+    device_info: Any
+    try:
+        device_info = request.json
+    except Exception as e:
+        logger.error(e)
+        return {"message": str(e)}
+    with Session.begin() as session:
+        device: Device
+        try:
+            device = Device(
+                name=device_info["name"],
+                cores=device_info["cores"],
+                ram_total_kb=device_info["ram_total_kb"],
+                disk_total_kb=device_info["disk_total_kb"],
+            )
+        except KeyError as ke:
+            logger.error("Device creation failed, missing args in JSON: %s", ke)
+            return {
+                "message": f"request body missing key: {ke}"
+            }, HTTP.STATUS.BAD_REQUEST
+
+        session.add(device)
+    return {"message": "device created"}, HTTP.STATUS.OK
+
+
+@app.route("/metric/<int:device_id>", methods=[HTTP.METHOD.PUT])
+def create_metric(device_id: int):
+    metric_info: Any = request.json
+    with Session.begin() as session:
+        try:
+            metric = DeviceMetric(
+                device_id=device_id,
+                recorded_time=metric_info["recorded_time"],
+                ram_usage_kb=metric_info["ram_usage_kb"],
+                disk_usage_kb=metric_info["disk_usage_kb"],
+            )
+            session.add(metric)
+        except KeyError as ke:
+            logger.error("Device creation failed, missing args in JSON: %s", ke)
+            return {
+                "message": f"request body missing key: {ke}"
+            }, HTTP.STATUS.BAD_REQUEST
+    return {
+        "message": f"successfully added metric to device with id: {device_id}"
+    }, HTTP.STATUS.OK
+
+
+@app.route("/device-metrics/<int:device_id>", methods=[HTTP.METHOD.GET])
+def get_metrics(device_id: int):
+    with Session.begin() as session:
+        device: Device | None = session.scalar(
+            select(Device).where(Device.id == device_id)
+        )
+        if device is None:
+            return {"message": "no device matches id"}, HTTP.STATUS.BAD_REQUEST
+        metrics: List[DeviceMetric] = device.metrics
+        metrics_list: list[dict[str, Any]] = [metric.as_dict() for metric in metrics]
+        return {"metrics": metrics_list}, HTTP.STATUS.OK
+
+
 if __name__ == "__main__":
     logger.info("Running app on port: %s", config.server_c.port)
-    app.run(host="0.0.0.0", port=config.server_c.port)
+    app.run(host="127.0.0.1", port=config.server_c.port)
     logger.info("App run successfully")

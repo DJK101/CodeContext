@@ -14,3 +14,4 @@ class HTTP:
     @dataclass
     class METHOD:
         GET = "GET"
+        PUT = "PUT"
