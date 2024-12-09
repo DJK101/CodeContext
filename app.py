@@ -73,8 +73,8 @@ def create_device():
             device = Device(
                 name=device_info["name"],
                 cores=device_info["cores"],
-                ram_total_kb=device_info["ram_total_kb"],
-                disk_total_kb=device_info["disk_total_kb"],
+                ram_total=device_info["ram_total"],
+                disk_total=device_info["disk_total"],
             )
         except KeyError as ke:
             logger.error("Device creation failed, missing args in JSON: %s", ke)
@@ -95,8 +95,8 @@ def create_metric(device_id: int):
             metric = DeviceMetric(
                 device_id=device_id,
                 recorded_time=parser.isoparse(metric_info["recorded_time"]),
-                ram_usage_kb=metric_info["ram_usage_kb"],
-                disk_usage_kb=metric_info["disk_usage_kb"],
+                ram_usage=metric_info["ram_usage"],
+                disk_usage=metric_info["disk_usage"],
             )
             session.add(metric)
         except KeyError as ke:

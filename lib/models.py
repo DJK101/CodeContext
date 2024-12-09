@@ -51,8 +51,8 @@ class Device(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(64))
     cores: Mapped[int] = mapped_column(Integer)
-    ram_total_kb: Mapped[int] = mapped_column(Integer)
-    disk_total_kb: Mapped[int] = mapped_column(Integer)
+    ram_total: Mapped[int] = mapped_column(Integer)
+    disk_total: Mapped[int] = mapped_column(Integer)
     metrics: Mapped[List["DeviceMetric"]] = relationship(
         cascade="all, delete-orphan"
     )
@@ -64,14 +64,14 @@ class DeviceMetric(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     device_id: Mapped[int] = mapped_column(ForeignKey("device.id"))
     recorded_time: Mapped[datetime] = mapped_column(DateTime)
-    ram_usage_kb: Mapped[int] = mapped_column(Integer)
-    disk_usage_kb: Mapped[int] = mapped_column(Integer)
+    ram_usage: Mapped[int] = mapped_column(Integer)
+    disk_usage: Mapped[int] = mapped_column(Integer)
 
     def as_dict(self) -> dict[str, str | int]:
         return {
             "id": self.id,
             "device_id": self.device_id,
             "recorded_time": self.recorded_time.isoformat(),
-            "ram_usage_kb": self.ram_usage_kb,
-            "disk_usage_kb": self.disk_usage_kb,
+            "ram_usage": self.ram_usage,
+            "disk_usage": self.disk_usage,
         }
