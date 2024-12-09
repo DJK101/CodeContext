@@ -59,8 +59,8 @@ def log_test(log_type: str):
     return {"logtype": log_type}, HTTP.STATUS.OK
 
 
-@app.route("/device/<int:id>", methods=[HTTP.METHOD.PUT])
-def create_device(id: int):
+@app.route("/device/", methods=[HTTP.METHOD.PUT])
+def create_device():
     device_info: Any
     try:
         device_info = request.json
