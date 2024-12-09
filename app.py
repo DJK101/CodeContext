@@ -1,6 +1,7 @@
 import logging
 from typing import Any, List
 
+from dateutil import parser
 from flask import Flask, request
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker
@@ -8,7 +9,7 @@ from sqlalchemy.orm import sessionmaker
 from lib.block_timer import BlockTimer
 from lib.config import Config
 from lib.constants import HTTP
-from lib.models import Base, DeviceMetric, Log, Device
+from lib.models import Base, Device, DeviceMetric, Log
 
 config = Config(__file__)
 logger = logging.getLogger(__name__)
@@ -88,11 +89,12 @@ def create_device(id: int):
 @app.route("/metric/<int:device_id>", methods=[HTTP.METHOD.PUT])
 def create_metric(device_id: int):
     metric_info: Any = request.json
+    logger.info("metric_info in request: %s", metric_info)
     with Session.begin() as session:
         try:
             metric = DeviceMetric(
                 device_id=device_id,
-                recorded_time=metric_info["recorded_time"],
+                recorded_time=parser.isoparse(metric_info["recorded_time"]),
                 ram_usage_kb=metric_info["ram_usage_kb"],
                 disk_usage_kb=metric_info["disk_usage_kb"],
             )
@@ -102,6 +104,15 @@ def create_metric(device_id: int):
             return {
                 "message": f"request body missing key: {ke}"
             }, HTTP.STATUS.BAD_REQUEST
+        except ValueError as ve:
+            logger.error(
+                "Device creation request failed, timestamp in wrong format. Given: '%s'",
+                metric_info["recorded_time"],
+            )
+            return {
+                "message": f"request body missing key: {ve}"
+            }, HTTP.STATUS.BAD_REQUEST
+
     return {
         "message": f"successfully added metric to device with id: {device_id}"
     }, HTTP.STATUS.OK
