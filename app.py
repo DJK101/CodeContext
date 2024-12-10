@@ -1,9 +1,9 @@
 import logging
 from typing import Any, List
-
+from d_app import d_app
 from dateutil import parser
 from flask import Flask, request
-from sqlalchemy import create_engine, select
+from sqlalchemy import create_engine, select, desc
 from sqlalchemy.orm import sessionmaker
 
 from lib.block_timer import BlockTimer
@@ -14,6 +14,7 @@ from lib.models import Base, Device, DeviceMetric, Log
 config = Config(__file__)
 logger = logging.getLogger(__name__)
 app = Flask(__name__)
+d_app.init_dash_app(app)
 
 engine = create_engine("sqlite:///dev.db")
 Base.metadata.create_all(engine)
