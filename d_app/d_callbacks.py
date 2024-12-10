@@ -16,7 +16,7 @@ metrics_dict = {
 metrics = pd.DataFrame.from_dict(metrics_dict)
 
 
-def update_num(value: int):
+def update_graph(value: int):
     dff = metrics[metrics.device_id == value]
     return px.line(dff, x="recorded_time", y="ram_usage")
 
@@ -24,4 +24,4 @@ def update_num(value: int):
 def init_callbacks(app: Dash):
     app.callback(
         Output("graph-content", "figure"), Input("dropdown-selection", "value")
-    )(update_num)
+    )(update_graph)

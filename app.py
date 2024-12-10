@@ -1,24 +1,21 @@
 import logging
 from typing import Any, List
-from d_app import d_app
+
 from dateutil import parser
 from flask import Flask, request
-from sqlalchemy import create_engine, select, desc
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy import select
 
+from d_app import d_app
 from lib.block_timer import BlockTimer
 from lib.config import Config
 from lib.constants import HTTP
-from lib.models import Base, Device, DeviceMetric, Log
+from lib.db import Session
+from lib.models import Device, DeviceMetric, Log
 
 config = Config(__file__)
 logger = logging.getLogger(__name__)
 app = Flask(__name__)
 d_app.init_dash_app(app)
-
-engine = create_engine("sqlite:///dev.db")
-Base.metadata.create_all(engine)
-Session = sessionmaker(engine)
 
 
 @app.route("/", methods=[HTTP.METHOD.GET])
