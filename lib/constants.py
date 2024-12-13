@@ -4,6 +4,8 @@ CONFIG_FILE = "config.json"
 LOCAL_CONFIG_FILE = "local.config.json"
 DB_URI = "sqlite:///dev.db"
 
+GRAPH_COLUMN_NAMES = ("Recorded time", "RAM usage (Bytes)")
+
 
 @dataclass
 class HTTP:
