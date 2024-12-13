@@ -7,7 +7,6 @@ from sqlalchemy import delete, select
 from sqlalchemy.exc import IntegrityError
 
 from d_app import d_app
-from lib.block_timer import BlockTimer
 from lib.config import Config
 from lib.timed_session import TimedSession
 from lib.constants import HTTP
