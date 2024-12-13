@@ -49,7 +49,7 @@ class Device(Base):
     __tablename__ = "device"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(String(64))
+    name: Mapped[str] = mapped_column(String(64), unique=True, index=True)
     cores: Mapped[int] = mapped_column(Integer)
     ram_total: Mapped[int] = mapped_column(Integer)
     disk_total: Mapped[int] = mapped_column(Integer)
