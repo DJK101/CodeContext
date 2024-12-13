@@ -1,24 +1,28 @@
-from dash import Dash, Output, Input
-import plotly.express as px
+import logging
+
 import pandas as pd
+import plotly.express as px
+from dash import Dash, Input, Output
+from sqlalchemy import select
 
-metrics_dict = {
-    "device_id": [1, 1, 1],
-    "disk_usage": [10, 97777127424, 97777127424],
-    "id": [1, 2, 3],
-    "ram_usage": [10, 7100694528, 7141351424],
-    "recorded_time": [
-        "2024-12-09T14:46:15.043000",
-        "2024-12-09T14:46:47.833851",
-        "2024-12-09T14:46:49.887812",
-    ],
-}
-metrics = pd.DataFrame.from_dict(metrics_dict)
+from lib.timed_session import Session
+from lib.models import Device, DeviceMetric
 
+logger = logging.getLogger(__name__)
 
-def update_graph(value: int):
-    dff = metrics[metrics.device_id == value]
-    return px.line(dff, x="recorded_time", y="ram_usage")
+def update_graph(value: str):
+    with Session.begin() as session:
+        logger.debug(value)
+        stmt = (
+            select(DeviceMetric.recorded_time, DeviceMetric.ram_usage)
+            .join(Device, DeviceMetric.device_id == Device.id)
+            .where(Device.name == value)
+        )
+        device_metrics = [{"Recorded Time": met[0], "Ram Usage (MB)": met[1]//1_000_000} for met in session.execute(stmt)]
+        df = pd.DataFrame(device_metrics, columns=["Recorded Time", "Ram Usage (MB)"])
+        logger.debug("Ram Usage Dataframe:\n%s", df)
+
+    return px.line(df, x="Recorded Time", y="Ram Usage (MB)")
 
 
 def init_callbacks(app: Dash):
