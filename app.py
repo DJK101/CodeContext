@@ -54,9 +54,8 @@ def device():
     match request.method:
         case HTTP.METHOD.GET:
             device_id = body["device_id"]
-            return Cache.cache_data(
-                "device" + device_id, device_funcs.get_device, [device_id]
-            )
+            cache_key = "device" + str(device_id)
+            return Cache.cache_data(cache_key, device_funcs.get_device, [device_id])
         case HTTP.METHOD.PUT:
             return device_funcs.create_device()
         case HTTP.METHOD.DELETE:
@@ -67,9 +66,14 @@ def device():
 
 @app.route("/metric", methods=[HTTP.METHOD.PUT, HTTP.METHOD.GET])
 def metric():
+    if request.json is None:
+        return make_response("Must include a body", HTTP.STATUS.BAD_REQUEST)
+    body: dict[str, Any] = request.json
     match request.method:
         case HTTP.METHOD.GET:
-            return metric_funcs.get_metrics()
+            device_id = body["device_id"]
+            cache_key = "metrics" + str(device_id)
+            return Cache.cache_data(cache_key, metric_funcs.get_metrics, [device_id])
         case HTTP.METHOD.PUT:
             return metric_funcs.create_metric()
 

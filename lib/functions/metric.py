@@ -43,13 +43,12 @@ def create_metric() -> Response:
     )
 
 
-def get_metrics():
-    body: Any = request.json
+def get_metrics(device_id: int):
     with TimedSession("get_metrics") as session:
-        device: Device | None = session.get(Device, body["device_id"])
+        device: Device | None = session.get(Device, device_id)
         if device is None:
             return {
-                "message": f"no device matches id '{body['device_id']}'"
+                "message": f"no device matches id '{device_id}'"
             }, HTTP.STATUS.BAD_REQUEST
         metrics: list[DeviceMetric] = device.metrics
         metrics_list: list[dict[str, Any]] = [metric.as_dict() for metric in metrics]

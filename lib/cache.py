@@ -35,8 +35,10 @@ class CacheClass:
         """
         cache_obj: CacheObject[Any] = self.objects[key]
         if cache_obj.data is not None:
+            logger.debug("Cache data found for key '%s'", key)
             return cache_obj.data
         else:
+            logger.debug("Cache data expired for key '%s'", key)
             new_data = cache_obj.getter()
             self.objects[key] = CacheObject(new_data, cache_obj.getter, cache_obj.args)
             return new_data
