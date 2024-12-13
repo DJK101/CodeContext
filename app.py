@@ -1,16 +1,15 @@
 import logging
-from typing import Any, List
+from typing import Any
 
-from dateutil import parser
-from flask import Flask, request
-from sqlalchemy import delete, select
-from sqlalchemy.exc import IntegrityError
+from flask import Flask, make_response, request
 
+import lib.functions.device as device_funcs
+import lib.functions.metric as metric_funcs
 from d_app import d_app
 from lib.config import Config
-from lib.timed_session import TimedSession
 from lib.constants import HTTP
-from lib.models import Device, DeviceMetric, Log
+from lib.models import Log
+from lib.timed_session import TimedSession
 
 config = Config(__file__)
 logger = logging.getLogger(__name__)
@@ -46,93 +45,26 @@ def log_test(log_type: str):
     return {"logtype": log_type}, HTTP.STATUS.OK
 
 
-@app.route("/device/", methods=[HTTP.METHOD.PUT])
-def create_device():
-    device_info: Any
-    try:
-        device_info = request.json
-    except Exception as e:
-        logger.error(e)
-        return {"message": str(e)}
-    with TimedSession("create_device") as session:
-        device: Device
-        try:
-            device = Device(
-                name=device_info["name"],
-                cores=device_info["cores"],
-                ram_total=device_info["ram_total"],
-                disk_total=device_info["disk_total"],
-            )
-        except KeyError as ke:
-            logger.error("Device creation failed, missing args in JSON: %s", ke)
-            return {
-                "message": f"request body missing key: {ke}"
-            }, HTTP.STATUS.BAD_REQUEST
+@app.route("/device/", methods=[HTTP.METHOD.PUT, HTTP.METHOD.DELETE])
+def device():
+    match request.method:
+        case HTTP.METHOD.PUT:
+            return device_funcs.create_device()
+        case HTTP.METHOD.DELETE:
+            return device_funcs.delete_device()
 
-        try:
-            session.add(device)
-            session.flush()
-        except IntegrityError as ie:
-            session.rollback()
-            logger.error("Device creation failed: %s", ie)
-            return {
-                "message": f"Device name already exists: '{ie.params[0]}'"  # type: ignore
-            }, HTTP.STATUS.CONFLICT
-    return {"message": "device created"}, HTTP.STATUS.OK
+    return make_response({"message": "Invalid method type"}, HTTP.STATUS.BAD_REQUEST)
 
 
-@app.route("/metric/<int:device_id>", methods=[HTTP.METHOD.PUT])
-def create_metric(device_id: int):
-    metric_info: Any = request.json
-    logger.info("metric_info in request: %s", metric_info)
-    with TimedSession("create_metric") as session:
-        try:
-            metric = DeviceMetric(
-                device_id=device_id,
-                recorded_time=parser.isoparse(metric_info["recorded_time"]),
-                ram_usage=metric_info["ram_usage"],
-                disk_usage=metric_info["disk_usage"],
-            )
-            session.add(metric)
-        except KeyError as ke:
-            logger.error("Device creation failed, missing args in JSON: %s", ke)
-            return {
-                "message": f"request body missing key: {ke}"
-            }, HTTP.STATUS.BAD_REQUEST
-        except ValueError as ve:
-            logger.error(
-                "Device creation request failed, timestamp in wrong format. Given: '%s'",
-                metric_info["recorded_time"],
-            )
-            return {
-                "message": f"Timestamp in wrong format: {ve}"
-            }, HTTP.STATUS.BAD_REQUEST
+@app.route("/metric/", methods=[HTTP.METHOD.PUT, HTTP.METHOD.GET])
+def metric():
+    match request.method:
+        case HTTP.METHOD.GET:
+            return metric_funcs.get_metrics()
+        case HTTP.METHOD.PUT:
+            return metric_funcs.create_metric()
 
-    return {
-        "message": f"successfully added metric to device with id: {device_id}"
-    }, HTTP.STATUS.OK
-
-
-@app.route("/device-metrics/<int:device_id>", methods=[HTTP.METHOD.GET])
-def get_metrics(device_id: int):
-    with TimedSession("get_metrics") as session:
-        device: Device | None = session.get(Device, device_id)
-        if device is None:
-            return {"message": "no device matches id"}, HTTP.STATUS.BAD_REQUEST
-        metrics: List[DeviceMetric] = device.metrics
-        metrics_list: list[dict[str, Any]] = [metric.as_dict() for metric in metrics]
-        return {"metrics": metrics_list}, HTTP.STATUS.OK
-
-
-@app.route("/delete-device", methods=[HTTP.METHOD.DELETE])
-def delete_device():
-    body: Any = request.json
-    with TimedSession("delete_device") as session:
-        device: Device | None = session.get(Device, body["device_id"])
-        if device is None:
-            return {"message": "no device matches id"}, HTTP.STATUS.BAD_REQUEST
-        session.delete(device)
-    return {"message": f"Deleted device with id '{body['device_id']}'"}
+    return make_response({"message": "Invalid method type"}, HTTP.STATUS.BAD_REQUEST)
 
 
 if __name__ == "__main__":
