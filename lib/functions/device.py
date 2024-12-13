@@ -51,9 +51,21 @@ def delete_device() -> Response:
         device: Device | None = session.get(Device, body["device_id"])
         if device is None:
             return make_response(
-                {"message": "no device matches id"}, HTTP.STATUS.BAD_REQUEST
+                {"message": f"No device matches id {body['device_id']}"},
+                HTTP.STATUS.BAD_REQUEST,
             )
         session.delete(device)
     return make_response(
         {"message": f"Deleted device with id '{body['device_id']}'"}, HTTP.STATUS.OK
     )
+
+
+def get_device(device_id: int) -> Response:
+    with TimedSession("get_device") as session:
+        device = session.get(Device, device_id)
+        if device is None:
+            return make_response(
+                {"message": f"No device matches id {device_id}"},
+                HTTP.STATUS.BAD_REQUEST,
+            )
+        return make_response(device.as_dict(), HTTP.STATUS.OK)

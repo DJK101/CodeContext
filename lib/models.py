@@ -58,6 +58,14 @@ class Device(Base):
         back_populates="device", cascade="all, delete-orphan"
     )
 
+    def as_dict(self) -> dict[str, str | int]:
+        return {
+            "id": self.id,
+            "name": self.name,
+            "cores": self.cores,
+            "ram_total": self.ram_total,
+            "disk_total": self.disk_total,
+        }
 
 class DeviceMetric(Base):
     __tablename__ = "device_metric"

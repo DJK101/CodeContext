@@ -1,7 +1,7 @@
 import logging
 from typing import Any
 
-from flask import Flask, make_response, request
+from flask import Flask, Response, make_response, request
 
 import lib.functions.device as device_funcs
 import lib.functions.metric as metric_funcs
@@ -10,6 +10,7 @@ from lib.config import Config
 from lib.constants import HTTP
 from lib.models import Log
 from lib.timed_session import TimedSession
+from lib.cache import Cache
 
 config = Config(__file__)
 logger = logging.getLogger(__name__)
@@ -45,9 +46,17 @@ def log_test(log_type: str):
     return {"logtype": log_type}, HTTP.STATUS.OK
 
 
-@app.route("/device/", methods=[HTTP.METHOD.PUT, HTTP.METHOD.DELETE])
+@app.route("/device", methods=[HTTP.METHOD.PUT, HTTP.METHOD.DELETE, HTTP.METHOD.GET])
 def device():
+    if request.json is None:
+        return make_response("Must include a body", HTTP.STATUS.BAD_REQUEST)
+    body: dict[str, Any] = request.json
     match request.method:
+        case HTTP.METHOD.GET:
+            device_id = body["device_id"]
+            return Cache.cache_data(
+                "device" + device_id, device_funcs.get_device, [device_id]
+            )
         case HTTP.METHOD.PUT:
             return device_funcs.create_device()
         case HTTP.METHOD.DELETE:
@@ -56,7 +65,7 @@ def device():
     return make_response({"message": "Invalid method type"}, HTTP.STATUS.BAD_REQUEST)
 
 
-@app.route("/metric/", methods=[HTTP.METHOD.PUT, HTTP.METHOD.GET])
+@app.route("/metric", methods=[HTTP.METHOD.PUT, HTTP.METHOD.GET])
 def metric():
     match request.method:
         case HTTP.METHOD.GET:
