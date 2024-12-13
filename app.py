@@ -6,6 +6,7 @@ from flask import Flask, make_response, request
 import lib.functions.device as device_funcs
 import lib.functions.metric as metric_funcs
 from d_app import d_app
+from lib.block_timer import BlockTimer
 from lib.config import Config
 from lib.constants import HTTP
 from lib.models import Log
