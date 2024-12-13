@@ -19,3 +19,4 @@ class HTTP:
     class METHOD:
         GET = "GET"
         PUT = "PUT"
+        DELETE = "DELETE"

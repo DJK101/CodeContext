@@ -3,7 +3,7 @@ from typing import Any, List
 
 from dateutil import parser
 from flask import Flask, request
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.exc import IntegrityError
 
 from d_app import d_app
@@ -77,7 +77,7 @@ def create_device():
             session.rollback()
             logger.error("Device creation failed: %s", ie)
             return {
-                "message": f"Device name already exists: '{ie.params[0]}'" # type: ignore
+                "message": f"Device name already exists: '{ie.params[0]}'"  # type: ignore
             }, HTTP.STATUS.CONFLICT
     return {"message": "device created"}, HTTP.STATUS.OK
 
@@ -117,14 +117,23 @@ def create_metric(device_id: int):
 @app.route("/device-metrics/<int:device_id>", methods=[HTTP.METHOD.GET])
 def get_metrics(device_id: int):
     with TimedSession("get_metrics") as session:
-        device: Device | None = session.scalar(
-            select(Device).where(Device.id == device_id)
-        )
+        device: Device | None = session.get(Device, device_id)
         if device is None:
             return {"message": "no device matches id"}, HTTP.STATUS.BAD_REQUEST
         metrics: List[DeviceMetric] = device.metrics
         metrics_list: list[dict[str, Any]] = [metric.as_dict() for metric in metrics]
         return {"metrics": metrics_list}, HTTP.STATUS.OK
+
+
+@app.route("/delete-device", methods=[HTTP.METHOD.DELETE])
+def delete_device():
+    body: Any = request.json
+    with TimedSession("delete_device") as session:
+        device: Device | None = session.get(Device, body["device_id"])
+        if device is None:
+            return {"message": "no device matches id"}, HTTP.STATUS.BAD_REQUEST
+        session.delete(device)
+    return {"message": f"Deleted device with id '{body['device_id']}'"}
 
 
 if __name__ == "__main__":

@@ -53,8 +53,9 @@ class Device(Base):
     cores: Mapped[int] = mapped_column(Integer)
     ram_total: Mapped[int] = mapped_column(Integer)
     disk_total: Mapped[int] = mapped_column(Integer)
+
     metrics: Mapped[List["DeviceMetric"]] = relationship(
-        cascade="all, delete-orphan"
+        back_populates="device", cascade="all, delete-orphan"
     )
 
 
@@ -66,6 +67,8 @@ class DeviceMetric(Base):
     recorded_time: Mapped[datetime] = mapped_column(DateTime)
     ram_usage: Mapped[int] = mapped_column(Integer)
     disk_usage: Mapped[int] = mapped_column(Integer)
+
+    device: Mapped["Device"] = relationship(back_populates="metrics")
 
     def as_dict(self) -> dict[str, str | int]:
         return {
