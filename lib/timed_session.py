@@ -19,10 +19,10 @@ class TimedSession:
         self.logger: logging.Logger = logging.getLogger(__name__)
 
     def __enter__(self):
-        self.logger.info("Session '%s' started", self.name)
         self.start_time = time.perf_counter_ns()
         self.session = Session()
         self.session.begin()
+        self.logger.debug("Session '%s' started", self.name)
         return self.session
 
     def __exit__(
