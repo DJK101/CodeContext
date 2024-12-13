@@ -3,7 +3,7 @@ from flask import Flask
 from d_app.d_callbacks import init_callbacks
 import pandas as pd
 import plotly.express as px
-from lib.timed_session import Session
+from lib.timed_session import TimedSession
 import logging
 from lib.models import Device
 from sqlalchemy import select
@@ -16,7 +16,7 @@ def init_dash_app(flask_app: Flask) -> Dash:
     d_app = Dash(__name__, server=flask_app, url_base_pathname="/dash/")
 
     device_names: list[str]
-    with Session.begin() as session:
+    with TimedSession("get_device_names") as session:
         logger.info("Getting device names for dropdown")
         stmt = select(Device.name).distinct()
         device_names = list(session.execute(stmt).scalars().all())

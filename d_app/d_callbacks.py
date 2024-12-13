@@ -5,13 +5,13 @@ import plotly.express as px
 from dash import Dash, Input, Output
 from sqlalchemy import select
 
-from lib.timed_session import Session
+from lib.timed_session import TimedSession
 from lib.models import Device, DeviceMetric
 
 logger = logging.getLogger(__name__)
 
 def update_graph(value: str):
-    with Session.begin() as session:
+    with TimedSession("update_graph") as session:
         logger.debug(value)
         stmt = (
             select(DeviceMetric.recorded_time, DeviceMetric.ram_usage)
