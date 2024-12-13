@@ -4,12 +4,13 @@ from typing import Any, List
 from dateutil import parser
 from flask import Flask, request
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 
 from d_app import d_app
 from lib.block_timer import BlockTimer
 from lib.config import Config
+from lib.timed_session import TimedSession
 from lib.constants import HTTP
-from lib.db import Session
 from lib.models import Device, DeviceMetric, Log
 
 config = Config(__file__)
@@ -23,20 +24,9 @@ def index():
     return {"message": "Hello, World!"}, HTTP.STATUS.OK
 
 
-@app.route("/timer", methods=[HTTP.METHOD.GET])
-def timer():
-    time = 0
-    with BlockTimer() as bt:
-        for i in range(1000000):
-            x = i + 1
-            x = x + 1
-            time = bt.end_time - bt.start_time
-    return {"message": ("executed in %s nanonseconds", time)}, HTTP.STATUS.OK
-
-
 @app.route("/db")
 def db_test() -> tuple[dict[str, Any], int]:
-    with Session.begin() as session:
+    with TimedSession("db_test") as session:
         logs = session.query(Log).all()
         logs_list = [log.as_dict() for log in logs]
 
@@ -65,7 +55,7 @@ def create_device():
     except Exception as e:
         logger.error(e)
         return {"message": str(e)}
-    with Session.begin() as session:
+    with TimedSession("create_device") as session:
         device: Device
         try:
             device = Device(
@@ -80,7 +70,15 @@ def create_device():
                 "message": f"request body missing key: {ke}"
             }, HTTP.STATUS.BAD_REQUEST
 
-        session.add(device)
+        try:
+            session.add(device)
+            session.flush()
+        except IntegrityError as ie:
+            session.rollback()
+            logger.error("Device creation failed: %s", ie)
+            return {
+                "message": f"Device name already exists: '{ie.params[0]}'" # type: ignore
+            }, HTTP.STATUS.CONFLICT
     return {"message": "device created"}, HTTP.STATUS.OK
 
 
@@ -88,7 +86,7 @@ def create_device():
 def create_metric(device_id: int):
     metric_info: Any = request.json
     logger.info("metric_info in request: %s", metric_info)
-    with Session.begin() as session:
+    with TimedSession("create_metric") as session:
         try:
             metric = DeviceMetric(
                 device_id=device_id,
@@ -108,7 +106,7 @@ def create_metric(device_id: int):
                 metric_info["recorded_time"],
             )
             return {
-                "message": f"request body missing key: {ve}"
+                "message": f"Timestamp in wrong format: {ve}"
             }, HTTP.STATUS.BAD_REQUEST
 
     return {
@@ -118,7 +116,7 @@ def create_metric(device_id: int):
 
 @app.route("/device-metrics/<int:device_id>", methods=[HTTP.METHOD.GET])
 def get_metrics(device_id: int):
-    with Session.begin() as session:
+    with TimedSession("get_metrics") as session:
         device: Device | None = session.scalar(
             select(Device).where(Device.id == device_id)
         )
