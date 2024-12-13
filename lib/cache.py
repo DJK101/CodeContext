@@ -27,6 +27,12 @@ class CacheClass:
         return self.get_data(key)
 
     def get_data(self, key: str) -> Any:
+        """
+        Retrieve the data associated with the given key from the cache.
+
+        If the data has expired, it will refresh the cache with the
+        corresponding `CacheObject` getter function.
+        """
         cache_obj: CacheObject[Any] = self.objects[key]
         if cache_obj.data is not None:
             return cache_obj.data
