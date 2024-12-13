@@ -37,7 +37,6 @@ class TimedSession:
 
         if exc_type is None:
             self.session.commit()
-            self.logger.debug("Session '%s' commited", self.name)
         else:
             self.session.rollback()
             self.logger.debug("Session '%s' rolled back due to an exception", self.name)

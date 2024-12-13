@@ -1,7 +1,7 @@
 import logging
 from typing import Any
 
-from flask import Flask, Response, make_response, request
+from flask import Flask, make_response, request
 
 import lib.functions.device as device_funcs
 import lib.functions.metric as metric_funcs
@@ -57,6 +57,7 @@ def device():
             cache_key = "device" + str(device_id)
             return Cache.cache_data(cache_key, device_funcs.get_device, [device_id])
         case HTTP.METHOD.PUT:
+
             return device_funcs.create_device()
         case HTTP.METHOD.DELETE:
             return device_funcs.delete_device()
@@ -69,12 +70,13 @@ def metric():
     if request.json is None:
         return make_response("Must include a body", HTTP.STATUS.BAD_REQUEST)
     body: dict[str, Any] = request.json
+    device_id = body["device_id"]
+    cache_key = "metrics" + str(device_id)
     match request.method:
         case HTTP.METHOD.GET:
-            device_id = body["device_id"]
-            cache_key = "metrics" + str(device_id)
             return Cache.cache_data(cache_key, metric_funcs.get_metrics, [device_id])
         case HTTP.METHOD.PUT:
+            Cache.expire_data(cache_key)
             return metric_funcs.create_metric()
 
     return make_response({"message": "Invalid method type"}, HTTP.STATUS.BAD_REQUEST)
