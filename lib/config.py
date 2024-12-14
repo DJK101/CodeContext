@@ -2,7 +2,6 @@ import json
 import logging
 import logging.handlers
 import os
-import sys
 from dataclasses import dataclass
 from typing import Any
 
@@ -16,6 +15,7 @@ from lib.sqlalchemy_handler import SQLAlchemyHandler
 class ServerConfig:
     port: int = 5050
     caching: bool = True
+    cache_clear_period: int = 30
 
 
 @dataclass

@@ -1,6 +1,7 @@
 import logging
 import time
 from types import TracebackType
+from functools import wraps
 
 
 class BlockTimer:
@@ -24,4 +25,20 @@ class BlockTimer:
         # Stop the counter and calculate elapsed time
         self.end_time = time.perf_counter_ns()
         self.elapsed = self.end_time - self.start_time
-        self.logger.debug(f"{self.name} elapsed time: {self.elapsed:,}ns/{self.elapsed//1_000_000:,}ms")
+        self.logger.debug(
+            f"{self.name} elapsed time: {self.elapsed:,}ns/{self.elapsed//1_000_000:,}ms"
+        )
+
+
+def timed_function(name: str = "TimedFunction"):
+    """A decorator to time the execution of a function."""
+
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            with BlockTimer(name):
+                return func(*args, **kwargs)
+
+        return wrapper
+
+    return decorator
