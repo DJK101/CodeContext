@@ -3,16 +3,15 @@ from typing import Any
 
 from flask import Flask, make_response, request
 
-from lib.datamodels import DTO_Aggregator
 import lib.functions.device as device_funcs
 import lib.functions.metric as metric_funcs
 from d_app import d_app
-from lib.block_timer import BlockTimer
+from lib.cache import Cache
 from lib.config import Config
 from lib.constants import HTTP
+from lib.datamodels import DTO_Aggregator
 from lib.models import Log
 from lib.timed_session import TimedSession
-from lib.cache import Cache
 
 config = Config(__name__)
 cache = Cache(config.cache_c)
@@ -59,7 +58,8 @@ def device():
         case HTTP.METHOD.GET:
             device_id = body["device_id"]
             cache_key = "device" + str(device_id)
-            return cache.cache_data(cache_key, device_funcs.get_device, [device_id])
+            response = cache.cache_data(cache_key, device_funcs.get_device, [device_id])
+            return response
 
         case HTTP.METHOD.PUT:
             return device_funcs.create_device()
@@ -92,10 +92,14 @@ def metric():
 
 @app.route("/aggregator", methods=[HTTP.METHOD.PUT])
 def aggregator():
-    data = request.json
-    dto_aggregator = DTO_Aggregator.from_dict(data)
-    print(dto_aggregator)
-    return make_response({"message": "Invalid method type"}, HTTP.STATUS.OK)
+    body: dict[str, Any] = request.get_json()
+    try:
+        dto_aggregator = DTO_Aggregator.from_dict(body)
+    except KeyError as e:
+        logger.error("Aggregator request sent with incomplete body: %s", e)
+        return make_response({"message": f"Missing key in body at {e}"}, 400)
+
+    return make_response(dto_aggregator.to_dict(), 200)
 
 
 if __name__ == "__main__":
