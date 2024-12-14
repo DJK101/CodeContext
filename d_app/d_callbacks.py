@@ -5,9 +5,9 @@ import plotly.express as px
 from dash import Dash, Input, Output
 from sqlalchemy import select
 
-from lib.timed_session import TimedSession
-from lib.models import Device, DeviceSnapshot
 from lib.constants import GRAPH_COLUMN_NAMES
+from lib.models import Device, DeviceSnapshot
+from lib.timed_session import TimedSession
 
 logger = logging.getLogger(__name__)
 

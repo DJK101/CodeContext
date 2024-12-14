@@ -1,11 +1,10 @@
 from logging import getLogger
 from typing import Any
 
-from dateutil import parser
-from flask import Response, make_response, request
-from lib.datamodels import DTO_DataSnapshot, DTO_Metric
+from flask import Response, make_response
 
 from lib.constants import HTTP
+from lib.datamodels import DTO_DataSnapshot
 from lib.models import Device, DeviceMetric, DeviceSnapshot
 from lib.timed_session import TimedSession
 

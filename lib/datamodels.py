@@ -19,11 +19,13 @@ class DTO_DataSnapshot:
     timestamp_utc: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     metrics: List[DTO_Metric] = field(default_factory=list)
 
+
 @dataclass_json
 @dataclass
 class DTO_Properties:
     name: str
     value: float
+
 
 @dataclass_json
 @dataclass
