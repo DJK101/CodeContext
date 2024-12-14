@@ -29,7 +29,7 @@ class Cache:
             return func(*args)
 
         if not self.in_cache(key):
-            logger.debug("No cache with key '%s'", key)
+            logger.debug("Cache data NOT found for key '%s'", key)
             initial_value = func(*args)
             self.objects[key] = CacheObject(initial_value, func, args)
 
