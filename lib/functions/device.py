@@ -1,32 +1,29 @@
 from logging import getLogger
+from os import name
 from typing import Any
 
 from flask import Response, make_response, request
+from lib.datamodels import DTO_Device
 from sqlalchemy.exc import IntegrityError
 
 from lib.constants import HTTP
-from lib.models import Device, DeviceMetric
+from lib.models import Device, DeviceMetric, DeviceProperty
 from lib.timed_session import TimedSession
 
 logger = getLogger(__name__)
 
 
-def create_device() -> Response:
-    device_info: Any
-    try:
-        device_info = request.json
-    except Exception as e:
-        logger.error(e)
-        return make_response({"message": str(e)}, 200)
+def create_device(device_data: DTO_Device) -> Response:
     with TimedSession("create_device") as session:
         device: Device
         try:
-            device = Device(
-                name=device_info["name"],
-                cores=device_info["cores"],
-                ram_total=device_info["ram_total"],
-                disk_total=device_info["disk_total"],
-            )
+            device = Device(name=device_data.name)
+            for prop in device_data.properties:
+                device_property = DeviceProperty(
+                    name=prop.name, value=prop.value, device=device
+                )
+                device.properties.append(device_property)
+
         except KeyError as ke:
             logger.error("Device creation failed, missing args in JSON: %s", ke)
             return make_response(

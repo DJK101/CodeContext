@@ -23,8 +23,14 @@ class DTO_DataSnapshot(BaseDTO):
     metrics: List[DTO_Metric] = field(default_factory=list)
 
 @dataclass
+class DTO_Properties:
+    name: str
+    value: float
+
+@dataclass
 class DTO_Device(BaseDTO):
     name: str
+    properties: List[DTO_Properties] = field(default_factory=list)
     data_snapshots: List[DTO_DataSnapshot] = field(default_factory=list)
 
 @dataclass

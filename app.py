@@ -63,8 +63,7 @@ def device():
 
         case HTTP.METHOD.PUT:
             device_data = DTO_Device.from_dict(body)
-            # return device_funcs.create_device()
-            return make_response({"device": device_data.to_dict()}, HTTP.STATUS.OK)
+            return device_funcs.create_device(device_data)
 
         case HTTP.METHOD.DELETE:
             device_id = body["device_id"]
@@ -82,7 +81,7 @@ def metric():
     body: dict[str, Any] = request.json
     device_id = body["device_id"]
     cache_key = "metrics" + str(device_id)
-    
+
     match request.method:
         case HTTP.METHOD.GET:
             return cache.cache_data(cache_key, metric_funcs.get_metrics, [device_id])
