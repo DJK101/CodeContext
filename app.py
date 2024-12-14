@@ -82,10 +82,7 @@ def metric():
     cache_key = "metrics" + str(device_id)
     match request.method:
         case HTTP.METHOD.GET:
-            with BlockTimer("GET metric"):
-                return cache.cache_data(
-                    cache_key, metric_funcs.get_metrics, [device_id]
-                )
+            return cache.cache_data(cache_key, metric_funcs.get_metrics, [device_id])
         case HTTP.METHOD.PUT:
             cache.expire_data(cache_key)
             return metric_funcs.create_metric()

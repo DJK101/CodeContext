@@ -24,9 +24,8 @@ class Cache:
         self.objects: dict[str, CacheObject[Any]] = {}
 
     def cache_data(self, key: str, func: Callable[..., T], args: list = []) -> T:
-        logger.debug("Current cache keys: %s", self.objects.keys())
-
         if not config.server_c.caching:
+            logger.debug("Caching disabled, retrieving data")
             return func(*args)
 
         if not self.in_cache(key):

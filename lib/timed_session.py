@@ -18,14 +18,13 @@ class TimedSession:
 
     def __init__(self, name: str) -> None:
         self.name: str = name
-        self.block_timer = BlockTimer(name)
+        self.block_timer = BlockTimer(f"DB session '{name}'")
         self.logger: logging.Logger = logging.getLogger(__name__)
 
     def __enter__(self):
         self.block_timer.__enter__()
         self.session = Session()
         self.session.begin()
-        self.logger.debug("Session '%s' started", self.name)
         return self.session
 
     def __exit__(
@@ -38,7 +37,7 @@ class TimedSession:
             self.session.commit()
         else:
             self.session.rollback()
-            self.logger.debug("Session '%s' rolled back due to an exception", self.name)
+            self.logger.debug("DB session '%s' rolled back due to an exception", self.name)
 
         self.session.close()
         self.block_timer.__exit__(exc_type, exc_val, exc_tb)
