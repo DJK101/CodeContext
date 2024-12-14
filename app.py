@@ -13,8 +13,8 @@ from lib.models import Log
 from lib.timed_session import TimedSession
 from lib.cache import Cache
 
-cache = Cache()
-config = Config()
+config = Config(__name__)
+cache = Cache(config.cache_c)
 logger = logging.getLogger(__name__)
 app = Flask(__name__)
 d_app.init_dash_app(app)

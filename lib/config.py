@@ -7,20 +7,24 @@ from typing import Any
 
 import colorlog
 
-from lib.constants import CONFIG_FILE, LOCAL_CONFIG_FILE, PROJECT_DIR
+from lib.constants import CONFIG_FILE, LOCAL_CONFIG_FILE
 from lib.sqlalchemy_handler import SQLAlchemyHandler
 
 
 @dataclass
 class ServerConfig:
-    port: int = 5000
-    caching: bool = True
-    cache_clear_period: int = 30
+    port: int = 5050
 
 
 @dataclass
 class DatabaseConfig:
     connection_string: str = "sqlite:///dev.db"
+
+
+@dataclass
+class CacheConfig:
+    enabled: bool = True
+    clear_period: int = 30
 
 
 @dataclass
@@ -56,8 +60,9 @@ class Config:
     db_c: DatabaseConfig
     logging_c: LoggingConfig
 
-    def __init__(self):
-        os.chdir(PROJECT_DIR)
+    def __init__(self, script_path: str):
+        if script_path:
+            self._set_working_directory(script_path)
 
         if os.path.exists(LOCAL_CONFIG_FILE):
             self._config = self._load_config(LOCAL_CONFIG_FILE)
@@ -66,6 +71,9 @@ class Config:
 
         server_config_dict = self._config.get("server", {})
         self.server_c = ServerConfig(**server_config_dict)
+
+        cache_config_dict = self._config.get("cache", {})
+        self.cache_c = CacheConfig(**cache_config_dict)
 
         db_config_dict = self._config.get("db", {})
         self.db_c = DatabaseConfig(**db_config_dict)
@@ -77,6 +85,10 @@ class Config:
             db=DatabaseLoggingConfig(**logging_config_dict.get("db", {})),
         )
         self._setup_logging()
+
+    @staticmethod
+    def _set_working_directory(script_path: str) -> None:
+        os.chdir(os.path.dirname(os.path.abspath(script_path)))
 
     @staticmethod
     def _load_config(configpath: str) -> dict[str, Any]:

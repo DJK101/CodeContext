@@ -6,13 +6,11 @@ import time
 
 import threading
 from lib.block_timer import timed_function
-from lib.config import Config
+from lib.config import CacheConfig
 
 logger = getLogger(__name__)
 
 T = TypeVar("T")
-
-config = Config()
 
 
 @dataclass
@@ -25,7 +23,8 @@ class CacheObject(Generic[T]):
 
 class Cache:
 
-    def __init__(self) -> None:
+    def __init__(self, config: CacheConfig) -> None:
+        self.config = config
         self.objects: dict[str, CacheObject[Any]] = {}
         self.lock = threading.RLock()
         self.expiration_thread = threading.Thread(
@@ -36,7 +35,7 @@ class Cache:
     def cache_data(
         self, key: str, func: Callable[..., T], args: list = [], ttl: int = 30
     ) -> T:
-        if not config.server_c.caching:
+        if not self.config.enabled:
             logger.debug("Caching disabled, retrieving data")
             return func(*args)
 
@@ -108,7 +107,7 @@ class Cache:
         A background thread that periodically checks and removes expired cache objects.
         """
         while True:
-            time.sleep(config.server_c.cache_clear_period)
+            time.sleep(self.config.clear_period)
             with self.lock:
                 logger.debug("Scanning for expired cache keys, %s key(s) to check", len(self.objects))
                 expired_keys = [
