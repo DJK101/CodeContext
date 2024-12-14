@@ -15,7 +15,6 @@ logger = getLogger(__name__)
 
 def create_device(device_data: DTO_Device) -> Response:
     with TimedSession("create_device") as session:
-        device: Device
         try:
             device = Device(name=device_data.name)
             for prop in device_data.properties:
@@ -39,7 +38,7 @@ def create_device(device_data: DTO_Device) -> Response:
             return {
                 "message": f"Device name already exists: '{ie.params[0]}'"  # type: ignore
             }, HTTP.STATUS.CONFLICT
-    return make_response({"message": "device created"}, HTTP.STATUS.OK)
+        return make_response({"message": "device created"}, HTTP.STATUS.OK)
 
 
 def delete_device() -> Response:
