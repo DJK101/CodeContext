@@ -45,12 +45,31 @@ class Log(Base):
         }
 
 
-class Device(Base):
-    __tablename__ = "device"
+class Aggregator(Base):
+    __tablename__ = "aggregator"
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(64), unique=True, index=True)
 
+    devices: Mapped[List["Device"]] = relationship(
+        back_populates="aggregator", cascade="all, delete-orphan"
+    )
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "name": self.name,
+            "devices": [device.as_dict() for device in self.devices],
+        }
+
+
+class Device(Base):
+    __tablename__ = "device"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    aggregator_id: Mapped[int] = mapped_column(ForeignKey("aggregator.id"))
+    name: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+
+    aggregator: Mapped["Aggregator"] = relationship(back_populates="devices")
     properties: Mapped[List["DeviceProperty"]] = relationship(
         back_populates="device", cascade="all, delete-orphan"
     )
@@ -60,7 +79,7 @@ class Device(Base):
 
     def as_dict(self) -> dict[str, Any]:
         return {
-            "id": self.id,
+            "aggregator": self.aggregator.name,
             "name": self.name,
             "properties": [prop.as_dict() for prop in self.properties],
         }

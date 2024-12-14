@@ -3,6 +3,7 @@ from typing import Any
 
 from flask import Flask, make_response, request
 
+from lib.functions.aggregator import create_aggregator
 import lib.functions.device as device_funcs
 import lib.functions.snapshot as metric_funcs
 from d_app import d_app
@@ -101,18 +102,12 @@ def aggregator():
         case HTTP.METHOD.PUT:
             try:
                 dto_aggregator = DTO_Aggregator.from_dict(body)
+                return create_aggregator(dto_aggregator)
             except KeyError as e:
                 logger.error("Aggregator request sent with incomplete body: %s", e)
                 return make_response(
                     {"message": f"Missing key in body at {e}"}, HTTP.STATUS.BAD_REQUEST
                 )
-
-            logger.debug(
-                "Successfully created aggregator: %s", dto_aggregator.to_dict()
-            )
-            return make_response(
-                {"message": "Aggregator created successfully"}, HTTP.STATUS.OK
-            )
 
     return make_response({"message": "Invalid method type"}, HTTP.STATUS.BAD_REQUEST)
 
