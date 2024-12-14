@@ -24,13 +24,13 @@ def create_metric() -> Response:
             )
             session.add(metric)
         except KeyError as ke:
-            logger.error("Device creation failed, missing args in JSON: %s", ke)
+            logger.error("Metric creation failed, missing args in JSON: %s", ke)
             return make_response(
-                {"message": f"request body missing key: {ke}"}, HTTP.STATUS.BAD_REQUEST
+                {"message": f"Request body missing key: {ke}"}, HTTP.STATUS.BAD_REQUEST
             )
         except ValueError as ve:
             logger.error(
-                "Device creation request failed, timestamp in wrong format. Given: '%s'",
+                "Metric creation request failed, timestamp in wrong format. Given: '%s'",
                 body["recorded_time"],
             )
             return make_response(
