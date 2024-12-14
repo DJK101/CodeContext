@@ -11,6 +11,14 @@ from sqlalchemy.orm import (
     validates,
 )
 
+from lib.datamodels import (
+    DTO_Aggregator,
+    DTO_DataSnapshot,
+    DTO_Device,
+    DTO_Metric,
+    DTO_Properties,
+)
+
 
 class Base(DeclarativeBase):
     pass
@@ -61,6 +69,11 @@ class Aggregator(Base):
             "devices": [device.as_dict() for device in self.devices],
         }
 
+    def as_dto(self) -> DTO_Aggregator:
+        return DTO_Aggregator(
+            name=self.name, devices=[device.as_dto() for device in self.devices]
+        )
+
 
 class Device(Base):
     __tablename__ = "device"
@@ -84,6 +97,13 @@ class Device(Base):
             "properties": [prop.as_dict() for prop in self.properties],
         }
 
+    def as_dto(self) -> DTO_Device:
+        return DTO_Device(
+            name=self.name,
+            properties=[prop.as_dto() for prop in self.properties],
+            data_snapshots=[snapshot.as_dto() for snapshot in self.snapshots],
+        )
+
 
 class DeviceProperty(Base):
     __tablename__ = "device_property"
@@ -101,6 +121,9 @@ class DeviceProperty(Base):
             "value": self.value,
         }
 
+    def as_dto(self) -> DTO_Properties:
+        return DTO_Properties(name=self.name, value=self.value)
+
 
 class DeviceSnapshot(Base):
     __tablename__ = "device_snapshot"
@@ -116,9 +139,15 @@ class DeviceSnapshot(Base):
 
     def as_dict(self) -> dict[str, Any]:
         return {
-            "recorded_time": self.timestamp_utc.isoformat(),
+            "timestamp_utc": self.timestamp_utc.isoformat(),
             "metrics": [metric.as_dict() for metric in self.metrics],
         }
+
+    def as_dto(self) -> DTO_DataSnapshot:
+        return DTO_DataSnapshot(
+            timestamp_utc=self.timestamp_utc,
+            metrics=[metric.as_dto() for metric in self.metrics],
+        )
 
 
 class DeviceMetric(Base):
@@ -133,3 +162,6 @@ class DeviceMetric(Base):
 
     def as_dict(self) -> dict[str, str | int]:
         return {"name": self.name, "value": self.value}
+
+    def as_dto(self) -> DTO_Metric:
+        return DTO_Metric(name=self.name, value=self.value)
