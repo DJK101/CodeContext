@@ -4,7 +4,7 @@ from typing import Any
 from flask import Flask, make_response, request
 
 import lib.functions.device as device_funcs
-import lib.functions.metric as metric_funcs
+import lib.functions.snapshot as metric_funcs
 from d_app import d_app
 from lib.cache import Cache
 from lib.config import Config
@@ -96,16 +96,23 @@ def snapshot():
 @app.route("/aggregator", methods=[HTTP.METHOD.PUT])
 def aggregator():
     body: dict[str, Any] = request.get_json()
-    try:
-        dto_aggregator = DTO_Aggregator.from_dict(body)
-    except KeyError as e:
-        logger.error("Aggregator request sent with incomplete body: %s", e)
-        return make_response(
-            {"message": f"Missing key in body at {e}"}, HTTP.STATUS.BAD_REQUEST
-        )
 
-    logger.debug("Successfully created aggregator: %s", dto_aggregator.to_dict())
-    return make_response({"message": "Aggregator created successfully"}, HTTP.STATUS.OK)
+    match request.method:
+        case HTTP.METHOD.PUT:
+            try:
+                dto_aggregator = DTO_Aggregator.from_dict(body)
+            except KeyError as e:
+                logger.error("Aggregator request sent with incomplete body: %s", e)
+                return make_response(
+                    {"message": f"Missing key in body at {e}"}, HTTP.STATUS.BAD_REQUEST
+                )
+            
+            logger.debug(
+                "Successfully created aggregator: %s", dto_aggregator.to_dict()
+            )
+            return make_response(
+                {"message": "Aggregator created successfully"}, HTTP.STATUS.OK
+            )
 
 
 if __name__ == "__main__":
