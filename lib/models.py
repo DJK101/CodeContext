@@ -54,7 +54,7 @@ class Device(Base):
     properties: Mapped[List["DeviceProperty"]] = relationship(
         back_populates="device", cascade="all, delete-orphan"
     )
-    metrics: Mapped[List["DeviceMetric"]] = relationship(
+    snapshots: Mapped[List["DeviceSnapshot"]] = relationship(
         back_populates="device", cascade="all, delete-orphan"
     )
 
@@ -71,7 +71,7 @@ class DeviceProperty(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     device_id: Mapped[int] = mapped_column(ForeignKey("device.id"))
-    name: Mapped[str] = mapped_column(String)
+    name: Mapped[str] = mapped_column(String(32))
     value: Mapped[int] = mapped_column(Integer)
 
     device: Mapped["Device"] = relationship(back_populates="properties")
@@ -83,22 +83,34 @@ class DeviceProperty(Base):
         }
 
 
-class DeviceMetric(Base):
-    __tablename__ = "device_metric"
+class DeviceSnapshot(Base):
+    __tablename__ = "device_snapshot"
 
     id: Mapped[int] = mapped_column(primary_key=True)
     device_id: Mapped[int] = mapped_column(ForeignKey("device.id"))
     recorded_time: Mapped[datetime] = mapped_column(DateTime)
-    ram_usage: Mapped[int] = mapped_column(Integer)
-    disk_usage: Mapped[int] = mapped_column(Integer)
 
-    device: Mapped["Device"] = relationship(back_populates="metrics")
+    device: Mapped["Device"] = relationship(back_populates="snapshots")
+    metrics: Mapped[List["DeviceMetric"]] = relationship(
+        back_populates="snapshot", cascade="all, delete-orphan"
+    )
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "recorded_time": self.recorded_time.isoformat(),
+            "metrics": [metric.as_dict() for metric in self.metrics],
+        }
+
+
+class DeviceMetric(Base):
+    __tablename__ = "device_metric"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    snapshot_id: Mapped[int] = mapped_column(ForeignKey("device_snapshot.id"))
+    name: Mapped[str] = mapped_column(String(32))
+    value: Mapped[int] = mapped_column(Integer)
+
+    snapshot: Mapped["DeviceSnapshot"] = relationship(back_populates="metrics")
 
     def as_dict(self) -> dict[str, str | int]:
-        return {
-            "id": self.id,
-            "device_id": self.device_id,
-            "recorded_time": self.recorded_time.isoformat(),
-            "ram_usage": self.ram_usage,
-            "disk_usage": self.disk_usage,
-        }
+        return {"name": self.name, "value": self.value}

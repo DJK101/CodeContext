@@ -7,7 +7,7 @@ from lib.datamodels import DTO_Device
 from sqlalchemy.exc import IntegrityError
 
 from lib.constants import HTTP
-from lib.models import Device, DeviceMetric, DeviceProperty
+from lib.models import Device, DeviceSnapshot, DeviceProperty
 from lib.timed_session import TimedSession
 
 logger = getLogger(__name__)

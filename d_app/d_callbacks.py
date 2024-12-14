@@ -6,7 +6,7 @@ from dash import Dash, Input, Output
 from sqlalchemy import select
 
 from lib.timed_session import TimedSession
-from lib.models import Device, DeviceMetric
+from lib.models import Device, DeviceSnapshot
 from lib.constants import GRAPH_COLUMN_NAMES
 
 logger = logging.getLogger(__name__)
@@ -16,8 +16,8 @@ def update_graph(value: str):
     with TimedSession("update_graph") as session:
         logger.debug(value)
         stmt = (
-            select(DeviceMetric.recorded_time, DeviceMetric.ram_usage)
-            .join(Device, DeviceMetric.device_id == Device.id)
+            select(DeviceSnapshot.recorded_time, DeviceSnapshot.metrics)
+            .join(Device, DeviceSnapshot.device_id == Device.id)
             .where(Device.name == value)
         )
         device_metrics = [

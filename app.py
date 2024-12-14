@@ -9,7 +9,7 @@ from d_app import d_app
 from lib.cache import Cache
 from lib.config import Config
 from lib.constants import HTTP
-from lib.datamodels import DTO_Aggregator, DTO_Device
+from lib.datamodels import DTO_Aggregator, DTO_DataSnapshot, DTO_Device
 from lib.models import Device, Log
 from lib.timed_session import TimedSession
 
@@ -74,8 +74,8 @@ def device():
     return make_response({"message": "Invalid method type"}, HTTP.STATUS.BAD_REQUEST)
 
 
-@app.route("/metric", methods=[HTTP.METHOD.PUT, HTTP.METHOD.GET])
-def metric():
+@app.route("/snapshot", methods=[HTTP.METHOD.PUT, HTTP.METHOD.GET])
+def snapshot():
     if request.json is None:
         return make_response("Must include a body", HTTP.STATUS.BAD_REQUEST)
     body: dict[str, Any] = request.json
@@ -87,7 +87,8 @@ def metric():
             return cache.cache_data(cache_key, metric_funcs.get_metrics, [device_id])
         case HTTP.METHOD.PUT:
             cache.expire_data(cache_key)
-            return metric_funcs.create_metric()
+            dto_snapshot = DTO_DataSnapshot.from_dict(body)
+            return metric_funcs.create_snapshot(device_id, dto_snapshot)
 
     return make_response({"message": "Invalid method type"}, HTTP.STATUS.BAD_REQUEST)
 
