@@ -32,13 +32,13 @@ def create_device(device_data: DTO_Device) -> Response:
         try:
             session.add(device)
             session.flush()
+            return make_response({"message": "device created"}, HTTP.STATUS.OK)
         except IntegrityError as ie:
             session.rollback()
             logger.error("Device creation failed: %s", ie)
             return {
                 "message": f"Device name already exists: '{ie.params[0]}'"  # type: ignore
             }, HTTP.STATUS.CONFLICT
-        return make_response({"message": "device created"}, HTTP.STATUS.OK)
 
 
 def delete_device() -> Response:

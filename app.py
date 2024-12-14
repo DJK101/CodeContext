@@ -1,9 +1,13 @@
+
+import os
+os.remove("dev.db")
+
 import logging
 from typing import Any
 
 from flask import Flask, make_response, request
 
-from lib.functions.aggregator import create_aggregator
+from lib.functions.aggregator import create_aggregator_snapshot
 import lib.functions.device as device_funcs
 import lib.functions.snapshot as metric_funcs
 from d_app import d_app
@@ -64,7 +68,8 @@ def device():
 
         case HTTP.METHOD.PUT:
             device_data = DTO_Device.from_dict(body)
-            return device_funcs.create_device(device_data)
+            device_id = device_funcs.create_device(device_data)
+            return make_response({"message": "Successfuly created device"})
 
         case HTTP.METHOD.DELETE:
             device_id = body["device_id"]
@@ -102,7 +107,7 @@ def aggregator():
         case HTTP.METHOD.PUT:
             try:
                 dto_aggregator = DTO_Aggregator.from_dict(body)
-                return create_aggregator(dto_aggregator)
+                return create_aggregator_snapshot(dto_aggregator)
             except KeyError as e:
                 logger.error("Aggregator request sent with incomplete body: %s", e)
                 return make_response(

@@ -4,7 +4,6 @@ from types import TracebackType
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from lib import block_timer
 from lib.block_timer import BlockTimer
 from lib.constants import DB_URI
 from lib.models import Base
