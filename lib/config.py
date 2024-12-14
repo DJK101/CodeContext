@@ -13,7 +13,7 @@ from lib.sqlalchemy_handler import SQLAlchemyHandler
 
 @dataclass
 class ServerConfig:
-    port: int = 5050
+    port: int = 5000
     caching: bool = True
     cache_clear_period: int = 30
 
