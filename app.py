@@ -106,13 +106,15 @@ def aggregator():
                 return make_response(
                     {"message": f"Missing key in body at {e}"}, HTTP.STATUS.BAD_REQUEST
                 )
-            
+
             logger.debug(
                 "Successfully created aggregator: %s", dto_aggregator.to_dict()
             )
             return make_response(
                 {"message": "Aggregator created successfully"}, HTTP.STATUS.OK
             )
+
+    return make_response({"message": "Invalid method type"}, HTTP.STATUS.BAD_REQUEST)
 
 
 if __name__ == "__main__":

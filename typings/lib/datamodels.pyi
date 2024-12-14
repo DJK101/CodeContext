@@ -2,8 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Type, TypeVar, Union
-from uuid import UUID
+from typing import Any, List, Type, TypeVar
 
 T = TypeVar("T", bound="BaseDTO")
 
@@ -35,8 +34,5 @@ class DTO_Device(BaseDTO):
 
 @dataclass
 class DTO_Aggregator(BaseDTO):
-    guid: UUID
     name: str
     devices: List[DTO_Device] = field(default_factory=list)
-
-    def to_dict(self) -> dict[str, Any]: ...
