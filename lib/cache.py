@@ -27,7 +27,7 @@ class Cache:
 
     def __init__(self) -> None:
         self.objects: dict[str, CacheObject[Any]] = {}
-        self.lock = threading.Lock()
+        self.lock = threading.RLock()
         self.expiration_thread = threading.Thread(
             target=self._expiration_worker, daemon=True
         )
@@ -71,22 +71,22 @@ class Cache:
         """
         Refresh the cache for the given key by calling the `getter` function.
         """
-        assert self.lock.locked()
-        cache_obj: CacheObject[Any] = self.objects[key]
-        new_data = cache_obj.getter(*cache_obj.args)
-        expiry_time = datetime.now() + timedelta(seconds=ttl)
-        self.objects[key] = CacheObject(
-            new_data, cache_obj.getter, cache_obj.args, expiry_time
-        )
-        return new_data
+        with self.lock:
+            cache_obj: CacheObject[Any] = self.objects[key]
+            new_data = cache_obj.getter(*cache_obj.args)
+            expiry_time = datetime.now() + timedelta(seconds=ttl)
+            self.objects[key] = CacheObject(
+                new_data, cache_obj.getter, cache_obj.args, expiry_time
+            )
+            return new_data
 
     def expire_data(self, key: str) -> None:
         """
         Remove the cached object associated with the given key.
         """
-        assert self.lock.locked()
-        self.objects.pop(key, None)
-        logger.debug("Cache key '%s' expired", key)
+        with self.lock:
+            self.objects.pop(key, None)
+            logger.debug("Cache key '%s' expired", key)
 
     def in_cache(self, key: str) -> bool:
         """
@@ -110,7 +110,7 @@ class Cache:
         while True:
             time.sleep(config.server_c.cache_clear_period)
             with self.lock:
-                logger.debug("Scanning for expired cache keys")
+                logger.debug("Scanning for expired cache keys, %s key(s) to check", len(self.objects))
                 expired_keys = [
                     key
                     for key, obj in self.objects.items()
