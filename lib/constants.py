@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+PROJECT_DIR = "/home/djk/Development/ise/ct2-cs4447/CodeContext/WebServer"
 CONFIG_FILE = "config.json"
 LOCAL_CONFIG_FILE = "local.config.json"
 DB_URI = "sqlite:///dev.db"

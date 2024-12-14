@@ -13,7 +13,8 @@ from lib.models import Log
 from lib.timed_session import TimedSession
 from lib.cache import Cache
 
-config = Config(__file__)
+cache = Cache()
+config = Config()
 logger = logging.getLogger(__name__)
 app = Flask(__name__)
 d_app.init_dash_app(app)
@@ -52,15 +53,21 @@ def device():
     if request.json is None:
         return make_response("Must include a body", HTTP.STATUS.BAD_REQUEST)
     body: dict[str, Any] = request.json
+
+    device_id = body["device_id"]
+    cache_key = "device" + str(device_id)
+
     match request.method:
         case HTTP.METHOD.GET:
             device_id = body["device_id"]
             cache_key = "device" + str(device_id)
-            return Cache.cache_data(cache_key, device_funcs.get_device, [device_id])
-        case HTTP.METHOD.PUT:
+            return cache.cache_data(cache_key, device_funcs.get_device, [device_id])
 
+        case HTTP.METHOD.PUT:
             return device_funcs.create_device()
+
         case HTTP.METHOD.DELETE:
+            cache.expire_data(cache_key)
             return device_funcs.delete_device()
 
     return make_response({"message": "Invalid method type"}, HTTP.STATUS.BAD_REQUEST)
@@ -75,9 +82,12 @@ def metric():
     cache_key = "metrics" + str(device_id)
     match request.method:
         case HTTP.METHOD.GET:
-            return Cache.cache_data(cache_key, metric_funcs.get_metrics, [device_id])
+            with BlockTimer("GET metric"):
+                return cache.cache_data(
+                    cache_key, metric_funcs.get_metrics, [device_id]
+                )
         case HTTP.METHOD.PUT:
-            Cache.expire_data(cache_key)
+            cache.expire_data(cache_key)
             return metric_funcs.create_metric()
 
     return make_response({"message": "Invalid method type"}, HTTP.STATUS.BAD_REQUEST)

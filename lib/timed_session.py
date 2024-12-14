@@ -4,6 +4,8 @@ from types import TracebackType
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
+from lib import block_timer
+from lib.block_timer import BlockTimer
 from lib.constants import DB_URI
 from lib.models import Base
 
@@ -16,10 +18,11 @@ class TimedSession:
 
     def __init__(self, name: str) -> None:
         self.name: str = name
+        self.block_timer = BlockTimer(name)
         self.logger: logging.Logger = logging.getLogger(__name__)
 
     def __enter__(self):
-        self.start_time = time.perf_counter_ns()
+        self.block_timer.__enter__()
         self.session = Session()
         self.session.begin()
         self.logger.debug("Session '%s' started", self.name)
@@ -31,10 +34,6 @@ class TimedSession:
         exc_val: BaseException | None,
         exc_tb: TracebackType | None,
     ):
-        # Stop the counter and calculate elapsed time
-        self.end_time = time.perf_counter_ns()
-        self.elapsed = self.end_time - self.start_time
-
         if exc_type is None:
             self.session.commit()
         else:
@@ -42,4 +41,4 @@ class TimedSession:
             self.logger.debug("Session '%s' rolled back due to an exception", self.name)
 
         self.session.close()
-        self.logger.info(f"Session '{self.name}' completed in {self.elapsed} nano seconds")
+        self.block_timer.__exit__(exc_type, exc_val, exc_tb)

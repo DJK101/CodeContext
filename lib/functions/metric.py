@@ -50,6 +50,11 @@ def get_metrics(device_id: int):
             return {
                 "message": f"no device matches id '{device_id}'"
             }, HTTP.STATUS.BAD_REQUEST
-        metrics: list[DeviceMetric] = device.metrics
+        metrics: list[DeviceMetric] = (
+            session.query(DeviceMetric)
+            .filter(DeviceMetric.device_id == device_id)
+            .limit(50)
+            .all()
+        )
         metrics_list: list[dict[str, Any]] = [metric.as_dict() for metric in metrics]
         return {"metrics": metrics_list}, HTTP.STATUS.OK
