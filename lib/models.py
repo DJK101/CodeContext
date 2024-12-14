@@ -78,8 +78,6 @@ class DeviceProperty(Base):
 
     def as_dict(self) -> dict[str, str | int]:
         return {
-            "id": self.id,
-            "device_id": self.device_id,
             "name": self.name,
             "value": self.value,
         }
