@@ -3,6 +3,7 @@ from typing import Any
 
 from flask import Flask, make_response, request
 
+from lib.datamodels import DTO_Aggregator
 import lib.functions.device as device_funcs
 import lib.functions.metric as metric_funcs
 from d_app import d_app
@@ -54,9 +55,6 @@ def device():
         return make_response("Must include a body", HTTP.STATUS.BAD_REQUEST)
     body: dict[str, Any] = request.json
 
-    device_id = body["device_id"]
-    cache_key = "device" + str(device_id)
-
     match request.method:
         case HTTP.METHOD.GET:
             device_id = body["device_id"]
@@ -67,6 +65,8 @@ def device():
             return device_funcs.create_device()
 
         case HTTP.METHOD.DELETE:
+            device_id = body["device_id"]
+            cache_key = "device" + str(device_id)
             cache.expire_data(cache_key)
             return device_funcs.delete_device()
 
@@ -88,6 +88,14 @@ def metric():
             return metric_funcs.create_metric()
 
     return make_response({"message": "Invalid method type"}, HTTP.STATUS.BAD_REQUEST)
+
+
+@app.route("/aggregator", methods=[HTTP.METHOD.PUT])
+def aggregator():
+    data = request.json
+    dto_aggregator = DTO_Aggregator.from_dict(data)
+    print(dto_aggregator)
+    return make_response({"message": "Invalid method type"}, HTTP.STATUS.OK)
 
 
 if __name__ == "__main__":
