@@ -5,32 +5,44 @@ from sqlalchemy import select
 from sqlalchemy.exc import NoResultFound
 
 from lib.constants import HTTP
-from lib.functions.device import create_device
-from lib.models import Aggregator, Device
+from lib.functions.device import create_device, find_or_create_device
+from lib.models import Aggregator, Device, DeviceProperty, DeviceSnapshot
 from lib.timed_session import TimedSession
 
 logger = getLogger(__name__)
 
 
-def create_aggregator_snapshot(aggregator_data: DTO_Aggregator) -> Response:
+def create_aggregator_snapshot(aggregator_data: DTO_Aggregator) -> str:
     with TimedSession("create_aggregator_snapshot") as session:
-        aggregator = Aggregator(name=aggregator_data.name)
+        stmt = select(Aggregator).where(Aggregator.name == aggregator_data.name)
+        aggregator = session.execute(stmt).scalar()
+
+        if not aggregator:
+            aggregator = Aggregator(
+                name=aggregator_data.name,
+            )
+            session.add(aggregator)
 
         for device_data in aggregator_data.devices:
             stmt = select(Device).where(Device.name == device_data.name)
+            device = session.execute(stmt).scalar()
 
-            try:
-                device = session.execute(stmt).scalar_one()
-            except NoResultFound:
-                session.rollback()
-                logger.info("No device found, creating '%s'...", device_data.name)
+            if not device:
+                device = Device(name=device_data.name, aggregator=aggregator)
+                session.add(device)
 
-                device = Device(aggregator=aggregator, name=device_data.name)
+            for property_data in device_data.properties:
+                device_property = DeviceProperty(
+                    name=property_data.name, value=property_data.value, device=device
+                )
+                session.add(device_property)
+                device.properties.append(device_property)
 
-            aggregator.devices.append(device)
-        session.add(aggregator)
+            for snapshot_data in device_data.data_snapshots:
+                device_snapshot = DeviceSnapshot(
+                    device=device, timestamp_utc=snapshot_data.timestamp_utc
+                )
+                session.add(device_snapshot)
+                device.snapshots.append(device_snapshot)
 
-    return make_response(
-        {"message": f"Successfully created aggregator '{aggregator_data.name}'"},
-        HTTP.STATUS.OK,
-    )
+        return aggregator.name

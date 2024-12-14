@@ -107,7 +107,7 @@ class DeviceSnapshot(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     device_id: Mapped[int] = mapped_column(ForeignKey("device.id"))
-    recorded_time: Mapped[datetime] = mapped_column(DateTime)
+    timestamp_utc: Mapped[datetime] = mapped_column(DateTime)
 
     device: Mapped["Device"] = relationship(back_populates="snapshots")
     metrics: Mapped[List["DeviceMetric"]] = relationship(
@@ -116,7 +116,7 @@ class DeviceSnapshot(Base):
 
     def as_dict(self) -> dict[str, Any]:
         return {
-            "recorded_time": self.recorded_time.isoformat(),
+            "recorded_time": self.timestamp_utc.isoformat(),
             "metrics": [metric.as_dict() for metric in self.metrics],
         }
 

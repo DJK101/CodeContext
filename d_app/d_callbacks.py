@@ -16,7 +16,7 @@ def update_graph(value: str):
     with TimedSession("update_graph") as session:
         logger.debug(value)
         stmt = (
-            select(DeviceSnapshot.recorded_time, DeviceSnapshot.metrics)
+            select(DeviceSnapshot.timestamp_utc, DeviceSnapshot.metrics)
             .join(Device, DeviceSnapshot.device_id == Device.id)
             .where(Device.name == value)
         )

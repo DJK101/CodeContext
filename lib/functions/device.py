@@ -3,42 +3,47 @@ from os import name
 from typing import Any
 
 from flask import Response, make_response, request
-from lib.datamodels import DTO_Device
+from numpy import record
+from sqlalchemy.exc import NoResultFound
+from lib.datamodels import DTO_Aggregator, DTO_Device
+from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
 from lib.constants import HTTP
-from lib.models import Device, DeviceProperty
+from lib.models import Aggregator, Device, DeviceProperty, DeviceSnapshot
 from lib.timed_session import TimedSession
 
 logger = getLogger(__name__)
 
 
-def create_device(device_data: DTO_Device) -> Response:
-    with TimedSession("create_device") as session:
+def find_or_create_device(device_data: DTO_Device, aggregator: Aggregator) -> Device:
+    with TimedSession("find_or_create_device") as session:
         try:
-            device = Device(name=device_data.name)
-            for prop in device_data.properties:
-                device_property = DeviceProperty(
-                    name=prop.name, value=prop.value, device=device
-                )
-                device.properties.append(device_property)
-
-        except KeyError as ke:
-            logger.error("Device creation failed, missing args in JSON: %s", ke)
-            return make_response(
-                {"message": f"request body missing key: {ke}"}, HTTP.STATUS.BAD_REQUEST
-            )
-
-        try:
-            session.add(device)
-            session.flush()
-            return make_response({"message": "device created"}, HTTP.STATUS.OK)
-        except IntegrityError as ie:
+            stmt = select(Device).where(Device.name == device_data.name)
+            return session.execute(stmt).scalar_one()
+        except NoResultFound:
             session.rollback()
-            logger.error("Device creation failed: %s", ie)
-            return {
-                "message": f"Device name already exists: '{ie.params[0]}'"  # type: ignore
-            }, HTTP.STATUS.CONFLICT
+            # logger.info("No device found, creating '%s'...", device_data.name)
+
+        return create_device(device_data, aggregator)
+
+
+def create_device(device_data: DTO_Device, aggregator: Aggregator) -> Device:
+    device = Device(name=device_data.name, aggregator=aggregator)
+
+    for property_data in device_data.properties:
+        device_property = DeviceProperty(
+            name=property_data.name, value=property_data.value, device=device
+        )
+        device.properties.append(device_property)
+
+    for snapshot_data in device_data.data_snapshots:
+        snapshot = DeviceSnapshot(
+            device=device, timestamp_utc=snapshot_data.timestamp_utc
+        )
+        device.snapshots.append(snapshot)
+
+    return device
 
 
 def delete_device() -> Response:

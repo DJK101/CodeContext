@@ -1,6 +1,7 @@
-
 import os
-os.remove("dev.db")
+
+if os.path.exists("dev.db"):
+    os.remove("dev.db")
 
 import logging
 from typing import Any
@@ -68,7 +69,6 @@ def device():
 
         case HTTP.METHOD.PUT:
             device_data = DTO_Device.from_dict(body)
-            device_id = device_funcs.create_device(device_data)
             return make_response({"message": "Successfuly created device"})
 
         case HTTP.METHOD.DELETE:
@@ -107,7 +107,11 @@ def aggregator():
         case HTTP.METHOD.PUT:
             try:
                 dto_aggregator = DTO_Aggregator.from_dict(body)
-                return create_aggregator_snapshot(dto_aggregator)
+                name = create_aggregator_snapshot(dto_aggregator)
+                return make_response(
+                    {"message": f"Successfully created aggregator '{name}'"},
+                    HTTP.STATUS.OK,
+                )
             except KeyError as e:
                 logger.error("Aggregator request sent with incomplete body: %s", e)
                 return make_response(
