@@ -50,22 +50,40 @@ class Device(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(64), unique=True, index=True)
-    cores: Mapped[int] = mapped_column(Integer)
-    ram_total: Mapped[int] = mapped_column(Integer)
-    disk_total: Mapped[int] = mapped_column(Integer)
 
+    properties: Mapped[List["DeviceProperty"]] = relationship(
+        back_populates="device", cascade="all, delete-orphan"
+    )
     metrics: Mapped[List["DeviceMetric"]] = relationship(
         back_populates="device", cascade="all, delete-orphan"
     )
 
-    def as_dict(self) -> dict[str, str | int]:
+    def as_dict(self) -> dict[str, Any]:
         return {
             "id": self.id,
             "name": self.name,
-            "cores": self.cores,
-            "ram_total": self.ram_total,
-            "disk_total": self.disk_total,
+            "properties": [prop.as_dict() for prop in self.properties],
         }
+
+
+class DeviceProperty(Base):
+    __tablename__ = "device_property"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    device_id: Mapped[int] = mapped_column(ForeignKey("device.id"))
+    name: Mapped[str] = mapped_column(String)
+    value: Mapped[int] = mapped_column(Integer)
+
+    device: Mapped["Device"] = relationship(back_populates="properties")
+
+    def as_dict(self) -> dict[str, str | int]:
+        return {
+            "id": self.id,
+            "device_id": self.device_id,
+            "name": self.name,
+            "value": self.value,
+        }
+
 
 class DeviceMetric(Base):
     __tablename__ = "device_metric"

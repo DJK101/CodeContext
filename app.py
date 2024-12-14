@@ -9,8 +9,8 @@ from d_app import d_app
 from lib.cache import Cache
 from lib.config import Config
 from lib.constants import HTTP
-from lib.datamodels import DTO_Aggregator
-from lib.models import Log
+from lib.datamodels import DTO_Aggregator, DTO_Device
+from lib.models import Device, Log
 from lib.timed_session import TimedSession
 
 config = Config(__name__)
@@ -62,7 +62,9 @@ def device():
             return response
 
         case HTTP.METHOD.PUT:
-            return device_funcs.create_device()
+            device_data = DTO_Device.from_dict(body)
+            # return device_funcs.create_device()
+            return make_response({"device": device_data.to_dict()}, HTTP.STATUS.OK)
 
         case HTTP.METHOD.DELETE:
             device_id = body["device_id"]
@@ -80,6 +82,7 @@ def metric():
     body: dict[str, Any] = request.json
     device_id = body["device_id"]
     cache_key = "metrics" + str(device_id)
+    
     match request.method:
         case HTTP.METHOD.GET:
             return cache.cache_data(cache_key, metric_funcs.get_metrics, [device_id])
@@ -97,9 +100,12 @@ def aggregator():
         dto_aggregator = DTO_Aggregator.from_dict(body)
     except KeyError as e:
         logger.error("Aggregator request sent with incomplete body: %s", e)
-        return make_response({"message": f"Missing key in body at {e}"}, 400)
+        return make_response(
+            {"message": f"Missing key in body at {e}"}, HTTP.STATUS.BAD_REQUEST
+        )
 
-    return make_response(dto_aggregator.to_dict(), 200)
+    logger.debug("Successfully created aggregator: %s", dto_aggregator.to_dict())
+    return make_response({"message": "Aggregator created successfully"}, HTTP.STATUS.OK)
 
 
 if __name__ == "__main__":
