@@ -1,8 +1,10 @@
 {
   "server": {
-    "port": 5000,
-    "caching": true,
-    "cache_clear_period": 30
+    "port": 5000
+  },
+  "cache": {
+    "enabled": true,
+    "clear_period": 30
   },
   "logging": {
     "console": {
