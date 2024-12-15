@@ -67,3 +67,10 @@ def get_device(device_id: int) -> Response:
                 HTTP.STATUS.BAD_REQUEST,
             )
         return make_response(device.as_dict(), HTTP.STATUS.OK)
+
+
+def get_device_names(limit: int = 20) -> list[str]:
+    with TimedSession("get_device_names") as session:
+        stmt = select(Device.name).limit(limit)
+        result = session.execute(stmt).scalars()
+        return list(result)

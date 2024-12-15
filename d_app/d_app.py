@@ -3,6 +3,7 @@ from flask import Flask
 from d_app.d_callbacks import init_callbacks
 import pandas as pd
 import plotly.express as px
+from lib.helper.device import get_device_names
 from lib.timed_session import TimedSession
 import logging
 from lib.models import Device
@@ -15,12 +16,7 @@ def init_dash_app(flask_app: Flask) -> Dash:
     # Initialize the Dash app
     d_app = Dash(__name__, server=flask_app, url_base_pathname="/dash/")
 
-    device_names: list[str]
-    with TimedSession("get_device_names") as session:
-        logger.info("Getting device names for dropdown")
-        stmt = select(Device.name).distinct()
-        device_names = list(session.execute(stmt).scalars().all())
-        logger.debug("List of devices: %s", device_names)
+    device_names = get_device_names()
 
     # Define the layout
     d_app.layout = [
