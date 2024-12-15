@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any, List
 
 from sqlalchemy import DateTime, ForeignKey, Integer, String
@@ -152,6 +152,9 @@ class DeviceSnapshot(Base):
             utc_offset_mins=self.utc_offset_mins,
             metrics=[metric.as_dto() for metric in self.metrics],
         )
+
+    def local_time(self) -> datetime:
+        return self.timestamp_utc + timedelta(minutes=self.utc_offset_mins)
 
 
 class DeviceMetric(Base):
