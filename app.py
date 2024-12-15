@@ -107,9 +107,12 @@ def aggregator():
         case HTTP.METHOD.PUT:
             try:
                 dto_aggregator = DTO_Aggregator.from_dict(body)
-                name = create_aggregator_snapshot(dto_aggregator)
+                aggregator = create_aggregator_snapshot(dto_aggregator)
                 return make_response(
-                    {"message": f"Successfully created aggregator '{name}'"},
+                    {
+                        "message": f"Successfully created aggregator",
+                        "aggregator": aggregator.to_json(),
+                    },
                     HTTP.STATUS.OK,
                 )
             except KeyError as e:
