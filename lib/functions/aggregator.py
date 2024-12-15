@@ -19,6 +19,7 @@ def create_aggregator_snapshot(aggregator_data: DTO_Aggregator) -> DTO_Aggregato
         aggregator = session.execute(stmt).scalar()
 
         if not aggregator:
+            logger.debug("No aggregator found, creating '%s'...", aggregator_data.name)
             aggregator = Aggregator(
                 name=aggregator_data.name,
             )
@@ -48,9 +49,6 @@ def add_device_properties_and_snapshots(
     session: Session, device: Device, device_data: DTO_Device
 ) -> None:
     for property_data in device_data.properties:
-        logger.debug(
-            "Adding property '%s' to '%s'", property_data.name, device_data.name
-        )
         existing_property = next(
             (prop for prop in device.properties if prop.name == property_data.name),
             None,
@@ -61,7 +59,13 @@ def add_device_properties_and_snapshots(
 
         if existing_property:
             existing_property.value = property_data.value
+            logger.debug(
+                "Updating property '%s' for '%s'", property_data.name, device_data.name
+            )
         else:
+            logger.debug(
+                "Adding property '%s' to '%s'", property_data.name, device_data.name
+            )
             device_property = DeviceProperty(
                 name=property_data.name, value=property_data.value, device=device
             )
