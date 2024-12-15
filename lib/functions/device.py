@@ -1,15 +1,12 @@
 from logging import getLogger
-from os import name
 from typing import Any
 
 from flask import Response, make_response, request
-from numpy import record
-from sqlalchemy.exc import NoResultFound
-from lib.datamodels import DTO_Aggregator, DTO_Device
 from sqlalchemy import select
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import NoResultFound
 
 from lib.constants import HTTP
+from lib.datamodels import DTO_Device
 from lib.models import Aggregator, Device, DeviceProperty, DeviceSnapshot
 from lib.timed_session import TimedSession
 

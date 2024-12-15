@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import List, TypeVar, Any, Type
+from datetime import datetime
+from typing import Any, List, Type, TypeVar
 
 from dataclasses_json import dataclass_json
 

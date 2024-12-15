@@ -8,7 +8,6 @@ from typing import Any
 
 from flask import Flask, make_response, request
 
-from lib.functions.aggregator import create_aggregator_snapshot
 import lib.functions.device as device_funcs
 import lib.functions.snapshot as metric_funcs
 from d_app import d_app
@@ -16,6 +15,7 @@ from lib.cache import Cache
 from lib.config import Config
 from lib.constants import HTTP
 from lib.datamodels import DTO_Aggregator, DTO_DataSnapshot, DTO_Device
+from lib.functions.aggregator import create_aggregator_snapshot
 from lib.models import Device, Log
 from lib.timed_session import TimedSession
 

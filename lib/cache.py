@@ -1,10 +1,10 @@
+import threading
+import time
 from dataclasses import dataclass
+from datetime import datetime, timedelta
 from logging import getLogger
 from typing import Any, Callable, Generic, Optional, TypeVar
-from datetime import datetime, timedelta
-import time
 
-import threading
 from lib.block_timer import timed_function
 from lib.config import CacheConfig
 
@@ -109,7 +109,10 @@ class Cache:
         while True:
             time.sleep(self.config.clear_period)
             with self.lock:
-                logger.debug("Scanning for expired cache keys, %s key(s) to check", len(self.objects))
+                logger.debug(
+                    "Scanning for expired cache keys, %s key(s) to check",
+                    len(self.objects),
+                )
                 expired_keys = [
                     key
                     for key, obj in self.objects.items()

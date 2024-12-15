@@ -1,14 +1,9 @@
-from datetime import timedelta
 from logging import getLogger
 
-from flask import Response, make_response
 from sqlalchemy import select
-from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Session
 
-from lib.constants import HTTP
 from lib.datamodels import DTO_Aggregator, DTO_Device
-from lib.functions.device import create_device, find_or_create_device
 from lib.models import Aggregator, Device, DeviceMetric, DeviceProperty, DeviceSnapshot
 from lib.timed_session import TimedSession
 

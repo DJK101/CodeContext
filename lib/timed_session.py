@@ -1,6 +1,6 @@
 import logging
-import time
 from types import TracebackType
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -36,7 +36,9 @@ class TimedSession:
             self.session.commit()
         else:
             self.session.rollback()
-            self.logger.debug("DB session '%s' rolled back due to an exception", self.name)
+            self.logger.debug(
+                "DB session '%s' rolled back due to an exception", self.name
+            )
 
         self.session.close()
         self.block_timer.__exit__(exc_type, exc_val, exc_tb)
