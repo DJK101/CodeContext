@@ -110,7 +110,7 @@ class DeviceProperty(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     device_id: Mapped[int] = mapped_column(ForeignKey("device.id"))
-    name: Mapped[str] = mapped_column(String(32))
+    name: Mapped[str] = mapped_column(String(32), unique=True)
     value: Mapped[int] = mapped_column(Integer)
 
     device: Mapped["Device"] = relationship(back_populates="properties")
