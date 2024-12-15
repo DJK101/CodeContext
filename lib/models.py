@@ -19,6 +19,8 @@ from lib.datamodels import (
     DTO_Properties,
 )
 
+logger = logging.getLogger(__name__)
+
 
 class Base(DeclarativeBase):
     pass
