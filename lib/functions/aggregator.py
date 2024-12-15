@@ -13,7 +13,7 @@ from lib.timed_session import TimedSession
 logger = getLogger(__name__)
 
 
-def create_aggregator_snapshot(aggregator_data: DTO_Aggregator) -> str:
+def create_aggregator_snapshot(aggregator_data: DTO_Aggregator) -> DTO_Aggregator:
     with TimedSession("create_aggregator_snapshot") as session:
         stmt = select(Aggregator).where(Aggregator.name == aggregator_data.name)
         aggregator = session.execute(stmt).scalar()
@@ -28,7 +28,7 @@ def create_aggregator_snapshot(aggregator_data: DTO_Aggregator) -> str:
             device = get_or_create_device(session, device_data, aggregator)
             add_device_properties_and_snapshots(session, device, device_data)
 
-        return aggregator.name
+        return aggregator.as_dto()
 
 
 def get_or_create_device(
@@ -48,11 +48,22 @@ def add_device_properties_and_snapshots(
     session: Session, device: Device, device_data: DTO_Device
 ) -> None:
     for property_data in device_data.properties:
-        device_property = DeviceProperty(
-            name=property_data.name, value=property_data.value, device=device
+        existing_property = next(
+            (prop for prop in device.properties if prop.name == property_data.name),
+            None,
         )
-        session.add(device_property)
-        device.properties.append(device_property)
+
+        if existing_property and existing_property.value == property_data.value:
+            continue
+
+        if existing_property:
+            existing_property.value = property_data.value
+        else:
+            device_property = DeviceProperty(
+                name=property_data.name, value=property_data.value, device=device
+            )
+            session.add(device_property)
+            device.properties.append(device_property)
 
     for snapshot_data in device_data.data_snapshots:
         device_snapshot = DeviceSnapshot(
