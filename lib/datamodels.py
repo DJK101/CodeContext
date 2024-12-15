@@ -26,7 +26,7 @@ class DTO_Metric(BaseDTO):
 @dataclass_json
 @dataclass
 class DTO_DataSnapshot(BaseDTO):
-    timestamp_utc: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp_utc: datetime
     metrics: List[DTO_Metric] = field(default_factory=list)
 
 
