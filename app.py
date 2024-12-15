@@ -8,15 +8,15 @@ from typing import Any
 
 from flask import Flask, make_response, request
 
-import lib.functions.device as device_funcs
-import lib.functions.snapshot as metric_funcs
+import lib.helper.device as device_funcs
+import lib.helper.snapshot as metric_funcs
 from d_app import d_app
 from lib.cache import Cache
 from lib.config import Config
 from lib.constants import HTTP
 from lib.datamodels import DTO_Aggregator, DTO_DataSnapshot, DTO_Device
-from lib.functions.aggregator import create_aggregator_snapshot
-from lib.models import Device, Log
+from lib.helper.aggregator import create_aggregator_snapshot
+from lib.models import Device, DeviceMetric, Log
 from lib.timed_session import TimedSession
 
 config = Config(__name__)
@@ -108,10 +108,13 @@ def aggregator():
             try:
                 dto_aggregator = DTO_Aggregator.from_dict(body)
                 aggregator = create_aggregator_snapshot(dto_aggregator)
+                with TimedSession("count") as session:
+                    count = session.query(DeviceMetric).count()
                 return make_response(
                     {
                         "message": f"Successfully created aggregator",
                         "aggregator": aggregator.to_json(),
+                        "row_count": count,
                     },
                     HTTP.STATUS.OK,
                 )

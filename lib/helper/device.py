@@ -1,13 +1,16 @@
+from datetime import datetime
 from logging import getLogger
-from typing import Any
+from typing import Any, List, Tuple
 
 from flask import Response, make_response, request
 from sqlalchemy import select
 from sqlalchemy.exc import NoResultFound
+from sqlalchemy.orm import aliased
 
+from lib.block_timer import BlockTimer
 from lib.constants import HTTP
-from lib.datamodels import DTO_Device
-from lib.models import Aggregator, Device, DeviceProperty, DeviceSnapshot
+from lib.datamodels import DTO_Device, DTO_Metric
+from lib.models import Aggregator, Device, DeviceMetric, DeviceProperty, DeviceSnapshot
 from lib.timed_session import TimedSession
 
 logger = getLogger(__name__)
@@ -69,8 +72,30 @@ def get_device(device_id: int) -> Response:
         return make_response(device.as_dict(), HTTP.STATUS.OK)
 
 
-def get_device_names(limit: int = 20) -> list[str]:
+def get_device_names(limit: int = 20) -> List[str]:
     with TimedSession("get_device_names") as session:
         stmt = select(Device.name).limit(limit)
         result = session.execute(stmt).scalars()
         return list(result)
+
+
+def get_device_metrics(
+    device_name: str, metric_name: str, limit: int = 20
+) -> List[Tuple[int, datetime]]:
+    with TimedSession("get_device_metrics") as session:
+        count = session.query(DeviceMetric).count()
+        logger.debug("Number of rows in table: %s", count)
+
+        d_snap_alias = aliased(DeviceSnapshot)
+
+        stmt = (
+            select(DeviceSnapshot.timestamp_utc, DeviceMetric.value)
+            .join(DeviceSnapshot)
+            .join(Device)
+            .where(Device.name == device_name)
+            .where(DeviceMetric.name == metric_name)
+            .limit(limit)
+        )
+        result = session.execute(stmt).all()
+        metrics: List[Tuple[int, datetime]] = [(row[0], row[1]) for row in result]
+        return metrics
