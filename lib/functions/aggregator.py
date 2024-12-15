@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from lib.constants import HTTP
 from lib.functions.device import create_device, find_or_create_device
-from lib.models import Aggregator, Device, DeviceProperty, DeviceSnapshot
+from lib.models import Aggregator, Device, DeviceMetric, DeviceProperty, DeviceSnapshot
 from lib.timed_session import TimedSession
 
 logger = getLogger(__name__)
@@ -48,7 +48,9 @@ def add_device_properties_and_snapshots(
     session: Session, device: Device, device_data: DTO_Device
 ) -> None:
     for property_data in device_data.properties:
-        logger.debug("Adding property '%s' to '%s'", property_data.name, device_data.name)
+        logger.debug(
+            "Adding property '%s' to '%s'", property_data.name, device_data.name
+        )
         existing_property = next(
             (prop for prop in device.properties if prop.name == property_data.name),
             None,
@@ -70,3 +72,9 @@ def add_device_properties_and_snapshots(
             device=device, timestamp_utc=snapshot_data.timestamp_utc
         )
         session.add(device_snapshot)
+
+        for metric_data in snapshot_data.metrics:
+            device_metric = DeviceMetric(
+                name=metric_data.name, value=metric_data.value, snapshot=device_snapshot
+            )
+            session.add(device_metric)
