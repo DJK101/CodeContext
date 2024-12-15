@@ -27,6 +27,7 @@ class DTO_Metric(BaseDTO):
 @dataclass
 class DTO_DataSnapshot(BaseDTO):
     timestamp_utc: datetime
+    utc_offset_mins: int
     metrics: List[DTO_Metric] = field(default_factory=list)
 
 

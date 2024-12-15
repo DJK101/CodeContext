@@ -73,7 +73,9 @@ def add_device_properties_and_snapshots(
 
     for snapshot_data in device_data.data_snapshots:
         device_snapshot = DeviceSnapshot(
-            device=device, timestamp_utc=snapshot_data.timestamp_utc
+            device=device,
+            timestamp_utc=snapshot_data.timestamp_utc,
+            utc_offset_mins=snapshot_data.utc_offset_mins,
         )
         session.add(device_snapshot)
 

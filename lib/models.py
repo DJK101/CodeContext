@@ -133,6 +133,7 @@ class DeviceSnapshot(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     device_id: Mapped[int] = mapped_column(ForeignKey("device.id"))
     timestamp_utc: Mapped[datetime] = mapped_column(DateTime)
+    utc_offset_mins: Mapped[int] = mapped_column(Integer)
 
     device: Mapped["Device"] = relationship(back_populates="snapshots")
     metrics: Mapped[List["DeviceMetric"]] = relationship(
@@ -148,6 +149,7 @@ class DeviceSnapshot(Base):
     def as_dto(self) -> DTO_DataSnapshot:
         return DTO_DataSnapshot(
             timestamp_utc=self.timestamp_utc,
+            utc_offset_mins=self.utc_offset_mins,
             metrics=[metric.as_dto() for metric in self.metrics],
         )
 

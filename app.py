@@ -108,6 +108,7 @@ def aggregator():
             try:
                 dto_aggregator = DTO_Aggregator.from_dict(body)
                 aggregator = create_aggregator_snapshot(dto_aggregator)
+                logger.info("Snapshot time: %s", aggregator.devices[0].data_snapshots[0].timestamp_utc)
                 return make_response(
                     {
                         "message": f"Successfully created aggregator",
