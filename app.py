@@ -1,8 +1,3 @@
-import os
-
-if os.path.exists("dev.db"):
-    os.remove("dev.db")
-
 import logging
 from typing import Any
 
@@ -23,6 +18,7 @@ config = Config(__name__)
 cache = Cache(config.cache_c)
 logger = logging.getLogger(__name__)
 app = Flask(__name__)
+app.secret_key = "8f42a73054b1749f8f58848be5e6502c"
 d_app.init_dash_app(app)
 
 

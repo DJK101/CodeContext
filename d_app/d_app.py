@@ -26,18 +26,28 @@ def init_dash_app(flask_app: Flask) -> Dash:
         html.Div(
             [
                 dcc.Dropdown(device_names, id="device-selection"),
-                html.Button("Refresh device list", id="refresh-device-names", n_clicks=0),
+                html.Button(
+                    "Refresh device list", id="refresh-device-names", n_clicks=0
+                ),
             ]
         ),
         html.Div(
             [
                 dcc.Dropdown(metric_names, id="metric-selection"),
-                html.Button("Refresh metric list", id="refresh-metric-names", n_clicks=0),
+                html.Button(
+                    "Refresh metric list", id="refresh-metric-names", n_clicks=0
+                ),
             ]
         ),
         html.Button("Submit", id="refresh-graph", n_clicks=0),
         dcc.Graph(id="graph-content"),
-        dash_table.DataTable(id="table")
+        html.Button("Update Table", id="update-button", n_clicks=0),
+        dash_table.DataTable(
+            id="data-table",
+            page_action="custom",
+            page_current=0,
+            page_size=10,
+        ),
     ]
 
     init_callbacks(d_app)

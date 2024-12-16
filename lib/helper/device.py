@@ -3,7 +3,7 @@ from logging import getLogger
 from typing import Any, List, Tuple
 
 from flask import Response, make_response, request
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import aliased
 
@@ -86,8 +86,6 @@ def get_device_metrics(
         count = session.query(DeviceMetric).count()
         logger.debug("Number of rows in table: %s", count)
 
-        d_snap_alias = aliased(DeviceSnapshot)
-
         stmt = (
             select(DeviceSnapshot.timestamp_utc, DeviceMetric.value)
             .join(DeviceSnapshot)
@@ -99,3 +97,45 @@ def get_device_metrics(
         result = session.execute(stmt).all()
         metrics: List[Tuple[int, datetime]] = [(row[0], row[1]) for row in result]
         return metrics
+
+
+def get_all_device_metrics(
+    device_name: str, start_id: int | None = None, page: int = 1, page_size: int = 20
+):
+    with TimedSession("get_all_device_metrics") as session:
+        logger.debug("Requested page %s", page)
+        offset = (page - 1) * page_size
+
+        stmt = (
+            select(
+                Device.name,
+                DeviceSnapshot.timestamp_utc,
+                DeviceMetric.name,
+                DeviceMetric.value,
+            )
+            .select_from(Device)  # Explicitly set the starting table
+            .join(
+                DeviceSnapshot, DeviceSnapshot.device_id == Device.id
+            )  # Explicit ON clause
+            .join(
+                DeviceMetric, DeviceMetric.snapshot_id == DeviceSnapshot.id
+            )  # Explicit ON clause
+            .where(Device.name == device_name)
+        )
+
+        if start_id:
+            stmt = stmt.where(DeviceSnapshot.id <= start_id)
+
+        stmt = stmt.order_by(DeviceSnapshot.id.desc()).offset(offset).limit(page_size)
+
+        result = session.execute(stmt).all()
+        metrics: List[List[Any]] = [
+            [column for column in row] for row in result
+        ]
+        return metrics
+
+
+def get_latest_device_snapshot_id():
+    with TimedSession("get_latest_device_id") as session:
+        stmt = select(DeviceSnapshot.id).order_by(DeviceSnapshot.id.desc())
+        return session.execute(stmt).scalar()
