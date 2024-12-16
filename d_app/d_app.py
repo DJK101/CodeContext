@@ -1,4 +1,4 @@
-from dash import html, Dash, dcc
+from dash import html, Dash, dcc, dash_table
 from flask import Flask
 from d_app.d_callbacks import init_callbacks
 import pandas as pd
@@ -37,6 +37,7 @@ def init_dash_app(flask_app: Flask) -> Dash:
         ),
         html.Button("Submit", id="refresh-graph", n_clicks=0),
         dcc.Graph(id="graph-content"),
+        dash_table.DataTable(id="table")
     ]
 
     init_callbacks(d_app)
