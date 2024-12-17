@@ -1,7 +1,9 @@
+import json
 import logging
 from typing import Any
-
 from flask import Flask, make_response, request
+
+from sqlalchemy.exc import IntegrityError
 
 import lib.helper.device as device_funcs
 import lib.helper.snapshot as metric_funcs
@@ -10,7 +12,12 @@ from lib.cache import Cache
 from lib.config import Config
 from lib.constants import HTTP
 from lib.datamodels import DTO_Aggregator, DTO_DataSnapshot, DTO_Device
-from lib.helper.aggregator import create_aggregator_snapshot
+from lib.helper.aggregator import (
+    create_aggregator,
+    create_aggregator_snapshot,
+    delete_aggregator,
+    get_or_create_aggregator,
+)
 from lib.models import Device, DeviceMetric, Log
 from lib.timed_session import TimedSession
 
@@ -60,18 +67,19 @@ def device():
         case HTTP.METHOD.GET:
             device_id = body["device_id"]
             cache_key = "device" + str(device_id)
-            response = cache.cache_data(cache_key, device_funcs.get_device, [device_id])
-            return response
+            device_dto = cache.cache_data(cache_key, device_funcs.get_device, [device_id])
+            return make_response({"Succesfully created device"}, HTTP.STATUS.OK)
 
         case HTTP.METHOD.PUT:
             device_data = DTO_Device.from_dict(body)
             return make_response({"message": "Successfuly created device"})
 
         case HTTP.METHOD.DELETE:
-            device_id = body["device_id"]
-            cache_key = "device" + str(device_id)
+            device_name = body["device_name"]
+            cache_key = "device" + str(device_name)
             cache.expire_data(cache_key)
-            return device_funcs.delete_device()
+            device_funcs.delete_device(device_name)
+            return make_response("Deleted '%e'", HTTP.STATUS.OK)
 
     return make_response({"message": "Invalid method type"}, HTTP.STATUS.BAD_REQUEST)
 
@@ -102,20 +110,35 @@ def aggregator():
     match request.method:
         case HTTP.METHOD.PUT:
             try:
-                dto_aggregator = DTO_Aggregator.from_dict(body)
-                aggregator = create_aggregator_snapshot(dto_aggregator)
-                with TimedSession("count") as session:
-                    count = session.query(DeviceMetric).count()
+                aggregator_dto = DTO_Aggregator.from_dict(body)
+                aggregator_id = create_aggregator_snapshot(aggregator_dto)
+
                 return make_response(
                     {
-                        "message": f"Successfully created aggregator",
-                        "aggregator": aggregator.to_json(),
-                        "row_count": count,
+                        "message": f"Successfully added aggregator",
+                        "aggregator_id": aggregator_id,
                     },
                     HTTP.STATUS.OK,
                 )
             except KeyError as e:
                 logger.error("Aggregator request sent with incomplete body: %s", e)
+                return make_response(
+                    {"message": f"Missing key in body at {e}"}, HTTP.STATUS.BAD_REQUEST
+                )
+
+        case HTTP.METHOD.DELETE:
+            try:
+                aggregator_name = body["aggregator_name"]
+                delete_aggregator(aggregator_name)
+
+                return make_response(
+                    {
+                        "message": f"Successfully deleted aggregator",
+                    },
+                    HTTP.STATUS.OK,
+                )
+            except KeyError as e:
+                logger.error("No aggregator name found in body")
                 return make_response(
                     {"message": f"Missing key in body at {e}"}, HTTP.STATUS.BAD_REQUEST
                 )

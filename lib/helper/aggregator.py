@@ -1,13 +1,47 @@
 from logging import getLogger
+from typing import Tuple
 
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 
 from lib.datamodels import DTO_Aggregator, DTO_Device
 from lib.models import Aggregator, Device, DeviceMetric, DeviceProperty, DeviceSnapshot
 from lib.timed_session import TimedSession
 
 logger = getLogger(__name__)
+
+
+def create_aggregator(aggregator_data: DTO_Aggregator) -> int:
+    with TimedSession("create_device") as session:
+        aggregator = Aggregator(name=aggregator_data.name)
+
+        session.add(aggregator)
+        session.flush()
+
+        return aggregator.id
+
+
+def get_aggregator(aggregator_name: str) -> Tuple[int, DTO_Aggregator]:
+    with TimedSession("get_device") as session:
+        stmt = select(Aggregator).where(Aggregator.name == aggregator_name)
+        aggregator = session.execute(stmt).scalar_one()
+        return (aggregator.id, aggregator.as_dto())
+
+
+def update_aggregator(aggregator_data: DTO_Aggregator) -> DTO_Aggregator:
+    with TimedSession("update_device") as session:
+        stmt = select(Aggregator).where(Aggregator.name == aggregator_data.name)
+        aggregator = session.execute(stmt).scalar_one()
+        aggregator.name = aggregator_data.name
+
+        return aggregator.as_dto()
+
+
+def delete_aggregator(aggregator_name: str) -> None:
+    with TimedSession("delete_device") as session:
+        stmt = delete(Aggregator).where(Aggregator.name == aggregator_name)
+        session.execute(stmt)
 
 
 def create_aggregator_snapshot(aggregator_data: DTO_Aggregator) -> DTO_Aggregator:
@@ -27,6 +61,13 @@ def create_aggregator_snapshot(aggregator_data: DTO_Aggregator) -> DTO_Aggregato
             add_device_properties_and_snapshots(session, device, device_data)
 
         return aggregator.as_dto()
+    
+def get_or_create_aggregator(aggregator_data: DTO_Aggregator) -> int:
+    aggregator_id: int
+    try:
+        return get_aggregator(aggregator_data.name)[0]
+    except IntegrityError:
+        return create_aggregator(aggregator_data)
 
 
 def get_or_create_device(
