@@ -97,7 +97,6 @@ def get_all_device_metrics(
     device_name: str, start_datetime: datetime | None = None, end_datetime: datetime | None = None,page: int = 1, page_size: int = 20
 ):
     with TimedSession("get_all_device_metrics") as session:
-        logger.debug("Requested page %s", page)
         offset = (page - 1) * page_size
 
         stmt = (
@@ -127,7 +126,6 @@ def get_all_device_metrics(
         result = session.execute(stmt).all()
 
         metrics: List[List[Any]] = [[column for column in row] for row in result]
-        logger.info("Metrics : %s", metrics[:10])
         return metrics
 
 

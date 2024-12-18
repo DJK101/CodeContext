@@ -14,7 +14,6 @@ def init_dash_app(flask_app: Flask) -> Dash:
     d_app = Dash(__name__, server=flask_app, url_base_pathname="/dash/")
 
     device_names = get_device_names()
-    metric_names = get_metric_names()
 
     # Define the layout
     d_app.layout = [
@@ -29,7 +28,7 @@ def init_dash_app(flask_app: Flask) -> Dash:
         ),
         html.Div(
             [
-                dcc.Dropdown(metric_names, id="metric-selection"),
+                dcc.Dropdown([], id="metric-selection"),
                 html.Button(
                     "Refresh metric list", id="refresh-metric-names", n_clicks=0
                 ),
@@ -62,6 +61,14 @@ def init_dash_app(flask_app: Flask) -> Dash:
                     id="end-time-display",
                     type="time",
                     value=datetime.now().strftime("%H:%M:%S"),
+                    style={"marginLeft": "10px"}
+                ),
+                dcc.Dropdown(
+                    id="page-size-dropdown",
+                    options=[
+                        {"label": str(size), "value": size} for size in [10, 20, 50, 100]
+                    ],
+                    value=10,  # Default page size
                     style={"marginLeft": "10px"}
                 ),
             ],

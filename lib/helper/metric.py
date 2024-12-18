@@ -11,9 +11,15 @@ from logging import getLogger
 logger = getLogger(__name__)
 
 
-def get_metric_names() -> List[str]:
+def get_metric_names(device_name: str) -> List[str]:
     with TimedSession("get_metric_names") as session:
-        stmt = select(DeviceMetric.name).distinct()
+        stmt = (
+            select(DeviceMetric.name)
+            .join(DeviceSnapshot, DeviceSnapshot.id == DeviceMetric.snapshot_id)
+            .join(Device, Device.id == DeviceSnapshot.device_id)
+            .where(Device.name == device_name)
+            .distinct()
+        )
         result = session.execute(stmt).scalars()
         return list(result)
 
