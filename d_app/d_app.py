@@ -34,45 +34,68 @@ def init_dash_app(flask_app: Flask) -> Dash:
                 ),
             ]
         ),
-        html.Button("Submit", id="refresh-graph", n_clicks=0),
+        dcc.Dropdown(
+            id="graph-limit",
+            options=[
+                {"label": str(size), "value": size}
+                for size in [10, 20, 50, 100, 500, 1000]
+            ],
+            value=10,  # Default page size
+            style={"marginLeft": "10px"},
+        ),
         dcc.Graph(id="graph-content"),
         html.Div(
             [
                 html.Button("Update Table", id="update-button", n_clicks=0),
-                dcc.DatePickerSingle(
-                    id="start-date-display",
-                    date=datetime.now().strftime("%Y-%m-%d"),
-                    display_format="YYYY-MM-DD",
-                    style={"marginLeft": "10px"}
+                html.Div(
+                    [
+                        html.Span("Start date and time:"),
+                        dcc.DatePickerSingle(
+                            id="start-date-display",
+                            date=datetime.now().strftime("%Y-%m-%d"),
+                            display_format="YYYY-MM-DD",
+                            style={"marginLeft": "10px"},
+                        ),
+                        dcc.Input(
+                            id="start-time-display",
+                            type="time",
+                            value=datetime.now().strftime("%H:%M:%S"),
+                            style={"marginLeft": "10px"},
+                        ),
+                    ],
+                    style={"display": "flex", "flexDirection": "column"},
                 ),
-                dcc.Input(
-                    id="start-time-display",
-                    type="time",
-                    value=datetime.now().strftime("%H:%M:%S"),
-                    style={"marginLeft": "10px"}
-                ),
-                dcc.DatePickerSingle(
-                    id="end-date-display",
-                    date=(datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d"),
-                    display_format="YYYY-MM-DD",
-                    style={"marginLeft": "10px"}
-                ),
-                dcc.Input(
-                    id="end-time-display",
-                    type="time",
-                    value=datetime.now().strftime("%H:%M:%S"),
-                    style={"marginLeft": "10px"}
+                html.Div(
+                    [
+                        html.Span("End date and time:"),
+                        dcc.DatePickerSingle(
+                            id="end-date-display",
+                            date=(datetime.now() - timedelta(days=1)).strftime(
+                                "%Y-%m-%d"
+                            ),
+                            display_format="YYYY-MM-DD",
+                            style={"marginLeft": "10px"},
+                        ),
+                        dcc.Input(
+                            id="end-time-display",
+                            type="time",
+                            value=datetime.now().strftime("%H:%M:%S"),
+                            style={"marginLeft": "10px"},
+                        ),
+                    ],
+                    style={"display": "flex", "flexDirection": "column"},
                 ),
                 dcc.Dropdown(
                     id="page-size-dropdown",
                     options=[
-                        {"label": str(size), "value": size} for size in [10, 20, 50, 100]
+                        {"label": str(size), "value": size}
+                        for size in [10, 20, 50, 100]
                     ],
                     value=10,  # Default page size
-                    style={"marginLeft": "10px"}
+                    style={"marginLeft": "10px"},
                 ),
             ],
-            style={"display": "flex", "alignItems": "center"}
+            style={"display": "flex", "alignItems": "center"},
         ),
         dash_table.DataTable(
             id="data-table",
@@ -80,6 +103,7 @@ def init_dash_app(flask_app: Flask) -> Dash:
             page_current=0,
             page_size=10,
         ),
+        html.Button("Agent Action", id="agent-action", n_clicks=0),
     ]
     init_callbacks(d_app)
     return d_app

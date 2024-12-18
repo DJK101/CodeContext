@@ -17,6 +17,7 @@ from lib.helper.aggregator import (
 )
 from lib.models import Log
 from lib.timed_session import TimedSession
+from lib.poll import get, toggle
 
 config = Config(__name__)
 cache = Cache(config.cache_c)
@@ -30,6 +31,14 @@ d_app.init_dash_app(app)
 def index():
     return {"message": "Hello, World!"}, HTTP.STATUS.OK
 
+
+@app.route("/poll", methods=[HTTP.METHOD.GET])
+def poll():
+    if get():
+        temp = get()
+        toggle()
+        return {"message": temp}, HTTP.STATUS.ACCEPTED
+    return {"message": get()}, HTTP.STATUS.OK
 
 @app.route("/db")
 def db_test() -> tuple[dict[str, Any], int]:

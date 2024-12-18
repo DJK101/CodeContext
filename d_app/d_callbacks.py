@@ -15,13 +15,14 @@ from lib.helper.device import (
     get_latest_device_timestamp,
 )
 from lib.helper.metric import get_count_of_metrics, get_metric_names
+from lib.poll import toggle
 
 logger = logging.getLogger(__name__)
 
 
-def update_graph(n_clicks, device_name: str, metric_name: str):
+def update_graph(metric_name: str, limit: int, device_name: str):
     logger.info("Updating graph...")
-    metrics_list = get_device_metrics_by_name(device_name, metric_name, 1000)
+    metrics_list = get_device_metrics_by_name(device_name, metric_name, limit)
 
     device_metrics = [
         {"Recorded time": met[0], metric_name: met[1]} for met in metrics_list
@@ -90,10 +91,6 @@ def update_table(
             columns.append(metrics[0][2])
         if metrics[1][2] not in columns:
             columns.append(metrics[1][2])
-    # all_metrics = [
-    #     {"Device": met[0], "Recorded time": met[1], met[2]: met[3]}
-    #     for met in metrics_list
-    # ]
 
     df = pd.DataFrame(all_metrics, columns=list(columns))
     return (
@@ -102,39 +99,54 @@ def update_table(
         total_pages,
     )
 
+def agent_action(n_clicks: int):
+    toggle()
 
 def init_callbacks(app: Dash):
 
     app.callback(
+        # Outputs
         Output("graph-content", "figure"),
-        Input("refresh-graph", "n_clicks"),
+        # Inputs
+        Input("metric-selection", "value"),
+        Input("graph-limit", "value"),
+        # States
         State("device-selection", "value"),
-        State("metric-selection", "value"),
     )(update_graph)
 
     app.callback(
-        Output("device-selection", "options"), Input("refresh-device-names", "n_clicks")
+        # Outputs
+        Output("device-selection", "options"),
+        # Inputs
+        Input("refresh-device-names", "n_clicks"),
     )(update_device_list)
 
     app.callback(
+        # Outputs
         Output("metric-selection", "options"),
+        # Inputs
         Input("refresh-metric-names", "n_clicks"),
         Input("device-selection", "value"),
     )(update_metric_list)
 
     app.callback(
+        # Outputs
         Output("data-table", "data"),  # Update the table data
-        Output("data-table", "columns"),
-        Output("data-table", "page_count"),
-        # Update the table columns
+        Output("data-table", "columns"),  # Update the table columns
+        Output("data-table", "page_count"),  # Update the page count
+        # Inputs
         Input("update-button", "n_clicks"),
         Input("data-table", "page_current"),
         Input("page-size-dropdown", "value"),
         Input("device-selection", "value"),
-        # Trigger on button click
+        # States
         State("start-date-display", "date"),
         State("start-time-display", "value"),
         State("end-date-display", "date"),
         State("end-time-display", "value"),
     )(update_table)
+    app.callback(
+        # Inputs
+        Input("agent-action", "n_clicks"),
+    )(agent_action)
     logger.info("All callbacks initialized")

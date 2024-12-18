@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from http.client import ACCEPTED
 
 CONFIG_FILE = "config.json"
 LOCAL_CONFIG_FILE = "local.config.json"
@@ -14,6 +15,7 @@ class HTTP:
         OK = 200
         BAD_REQUEST = 400
         CONFLICT = 409
+        ACCEPTED = 202
 
     @dataclass
     class METHOD:
