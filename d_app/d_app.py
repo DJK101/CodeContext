@@ -4,6 +4,7 @@ from d_app.d_callbacks import init_callbacks
 from lib.helper.device import get_device_names
 from lib.helper.metric import get_metric_names
 import logging
+from datetime import datetime, timedelta
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +37,36 @@ def init_dash_app(flask_app: Flask) -> Dash:
         ),
         html.Button("Submit", id="refresh-graph", n_clicks=0),
         dcc.Graph(id="graph-content"),
-        html.Button("Update Table", id="update-button", n_clicks=0),
+        html.Div(
+            [
+                html.Button("Update Table", id="update-button", n_clicks=0),
+                dcc.DatePickerSingle(
+                    id="start-date-display",
+                    date=datetime.now().strftime("%Y-%m-%d"),
+                    display_format="YYYY-MM-DD",
+                    style={"marginLeft": "10px"}
+                ),
+                dcc.Input(
+                    id="start-time-display",
+                    type="time",
+                    value=datetime.now().strftime("%H:%M:%S"),
+                    style={"marginLeft": "10px"}
+                ),
+                dcc.DatePickerSingle(
+                    id="end-date-display",
+                    date=(datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d"),
+                    display_format="YYYY-MM-DD",
+                    style={"marginLeft": "10px"}
+                ),
+                dcc.Input(
+                    id="end-time-display",
+                    type="time",
+                    value=datetime.now().strftime("%H:%M:%S"),
+                    style={"marginLeft": "10px"}
+                ),
+            ],
+            style={"display": "flex", "alignItems": "center"}
+        ),
         dash_table.DataTable(
             id="data-table",
             page_action="custom",
@@ -44,6 +74,5 @@ def init_dash_app(flask_app: Flask) -> Dash:
             page_size=10,
         ),
     ]
-
     init_callbacks(d_app)
     return d_app

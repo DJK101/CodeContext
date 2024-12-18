@@ -1,3 +1,4 @@
+from datetime import datetime
 import logging
 
 import pandas as pd
@@ -7,46 +8,18 @@ from flask import session
 
 from lib.helper.device import (
     get_all_device_metrics,
-    get_device_metrics,
+    get_device_metrics_by_name,
     get_device_names,
-    get_latest_device_snapshot_id,
+    get_latest_device_timestamp,
 )
 from lib.helper.metric import get_count_of_metrics, get_metric_names
 
 logger = logging.getLogger(__name__)
 
 
-def reset_start_id(n_clicks: int):
-    session.pop("start_id", None)
-
-def update_table(page: int, page_size: int, device_name: str):
-    if not session.get("start_id"):
-        start_id = get_latest_device_snapshot_id()
-        session["start_id"] = start_id
-
-    start_id = session.get("start_id")
-    # page index starts from 0, so we have to increment by one
-    metrics_list = get_all_device_metrics(device_name, start_id, page + 1, page_size)
-
-    total_metrics = get_count_of_metrics(device_name, start_id)
-    logger.debug("Total metrics: %s", total_metrics)
-    total_pages = total_metrics // page_size
-    logger.debug("Total pages: %s", total_pages)
-
-    all_metrics = [
-        {"Device": met[0], "Recorded time": met[1], "Name": met[2], "Value": met[3]}
-        for met in metrics_list
-    ]
-    df = pd.DataFrame(all_metrics, columns=["Device", "Recorded time", "Name", "Value"])
-    return (
-        df.to_dict("records"),
-        [{"name": col, "id": col} for col in df.columns],
-        total_pages,
-    )
-
-
 def update_graph(n_clicks, device_name: str, metric_name: str):
-    metrics_list = get_device_metrics(device_name, metric_name, 1000)
+    logger.info("Updating graph...")
+    metrics_list = get_device_metrics_by_name(device_name, metric_name, 1000)
 
     device_metrics = [
         {"Recorded time": met[0], metric_name: met[1]} for met in metrics_list
@@ -68,7 +41,49 @@ def update_metric_list(n_clicks: int):
     return metric_names
 
 
+def update_table(
+    n_clicks: int,
+    page: int,
+    page_size: int,
+    device_name: str,
+    start_date_str: str,
+    start_time_str: str,
+    end_date_str: str,
+    end_time_str: str,
+):
+    logger.debug("start time: %s start date: %s", start_time_str, start_date_str)
+    start_time = datetime.strptime(start_date_str + start_time_str, "%Y-%m-%d%H:%M:%S")
+    end_time = datetime.strptime(end_date_str + end_time_str, "%Y-%m-%d%H:%M:%S")
+    # page index starts from 0, so we have to increment by one
+    metrics_list = get_all_device_metrics(
+        device_name,
+        start_datetime=start_time,
+        end_datetime=end_time,
+        page=page + 1,
+        page_size=page_size,
+    )
+
+    total_metrics = get_count_of_metrics(
+        device_name, start_datetime=start_time, end_datetime=end_time
+    )
+    logger.debug("Total metrics: %s", total_metrics)
+    total_pages = total_metrics // page_size
+    logger.debug("Total pages: %s", total_pages)
+
+    all_metrics = [
+        {"Device": met[0], "Recorded time": met[1], "Name": met[2], "Value": met[3]}
+        for met in metrics_list
+    ]
+    df = pd.DataFrame(all_metrics, columns=["Device", "Recorded time", "Name", "Value"])
+    return (
+        df.to_dict("records"),
+        [{"name": col, "id": col} for col in df.columns],
+        total_pages,
+    )
+
+
 def init_callbacks(app: Dash):
+
     app.callback(
         Output("graph-content", "figure"),
         Input("refresh-graph", "n_clicks"),
@@ -89,12 +104,14 @@ def init_callbacks(app: Dash):
         Output("data-table", "columns"),
         Output("data-table", "page_count"),
         # Update the table columns
+        Input("update-button", "n_clicks"),
         Input("data-table", "page_current"),
         Input("data-table", "page_size"),
         Input("device-selection", "value"),
         # Trigger on button click
+        State("start-date-display", "date"),
+        State("start-time-display", "value"),
+        State("end-date-display", "date"),
+        State("end-time-display", "value"),
     )(update_table)
-
-    app.callback(
-        Input("update-button", "n_clicks"),
-    )(reset_start_id)
+    logger.info("All callbacks initialized")

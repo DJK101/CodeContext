@@ -141,7 +141,7 @@ class DeviceSnapshot(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     device_id: Mapped[int] = mapped_column(ForeignKey("device.id"))
-    timestamp_utc: Mapped[datetime] = mapped_column(DateTime)
+    timestamp_utc: Mapped[datetime] = mapped_column(DateTime, index=True)
     utc_offset_mins: Mapped[int] = mapped_column(Integer)
 
     device: Mapped["Device"] = relationship(back_populates="snapshots")

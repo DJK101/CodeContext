@@ -73,7 +73,7 @@ def get_device_names(limit: int = 20) -> List[str]:
         return list(result)
 
 
-def get_device_metrics(
+def get_device_metrics_by_name(
     device_name: str, metric_name: str, limit: int = 20
 ) -> List[Tuple[int, datetime]]:
     with TimedSession("get_device_metrics") as session:
@@ -94,7 +94,7 @@ def get_device_metrics(
 
 
 def get_all_device_metrics(
-    device_name: str, start_id: int | None = None, page: int = 1, page_size: int = 20
+    device_name: str, start_datetime: datetime | None = None, end_datetime: datetime | None = None,page: int = 1, page_size: int = 20
 ):
     with TimedSession("get_all_device_metrics") as session:
         logger.debug("Requested page %s", page)
@@ -117,17 +117,21 @@ def get_all_device_metrics(
             .where(Device.name == device_name)
         )
 
-        if start_id:
-            stmt = stmt.where(DeviceSnapshot.id <= start_id)
+        if start_datetime:
+            stmt = stmt.filter(DeviceSnapshot.timestamp_utc <= start_datetime)
+        if end_datetime:
+            stmt = stmt.filter(DeviceSnapshot.timestamp_utc >= end_datetime)
 
         stmt = stmt.order_by(DeviceSnapshot.id.desc()).offset(offset).limit(page_size)
 
         result = session.execute(stmt).all()
+
         metrics: List[List[Any]] = [[column for column in row] for row in result]
+        logger.info("Metrics : %s", metrics[:10])
         return metrics
 
 
-def get_latest_device_snapshot_id():
-    with TimedSession("get_latest_device_id") as session:
-        stmt = select(DeviceSnapshot.id).order_by(DeviceSnapshot.id.desc())
+def get_latest_device_timestamp() -> datetime | None:
+    with TimedSession("get_latest_device_timestamp") as session:
+        stmt = select(DeviceSnapshot.timestamp_utc).order_by(DeviceSnapshot.timestamp_utc.desc())
         return session.execute(stmt).scalar()
