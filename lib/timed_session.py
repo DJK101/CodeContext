@@ -8,7 +8,7 @@ from lib.block_timer import BlockTimer
 from lib.constants import DB_URI
 from lib.models import Base
 
-engine = create_engine(DB_URI, echo=True)
+engine = create_engine(DB_URI)
 Base.metadata.create_all(engine)
 Session = sessionmaker(engine)
 

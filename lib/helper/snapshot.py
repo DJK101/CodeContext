@@ -32,6 +32,7 @@ def create_snapshot(device_id: int, snapshot_data: DTO_DataSnapshot) -> Response
 
             session.add(snapshot)
         except KeyError as ke:
+            session.rollback()
             logger.error("Metric creation failed, missing args in JSON: %s", ke)
             return make_response(
                 {"message": f"Request body missing key: {ke}"}, HTTP.STATUS.BAD_REQUEST
