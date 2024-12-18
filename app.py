@@ -16,6 +16,7 @@ from lib.helper.aggregator import (
     create_aggregator,
     create_aggregator_snapshot,
     delete_aggregator,
+    get_aggregator,
     get_or_create_aggregator,
 )
 from lib.models import Device, DeviceMetric, Log
@@ -67,7 +68,9 @@ def device():
         case HTTP.METHOD.GET:
             device_id = body["device_id"]
             cache_key = "device" + str(device_id)
-            device_dto = cache.cache_data(cache_key, device_funcs.get_device, [device_id])
+            device_dto = cache.cache_data(
+                cache_key, device_funcs.get_device, [device_id]
+            )
             return make_response({"Succesfully created device"}, HTTP.STATUS.OK)
 
         case HTTP.METHOD.PUT:
@@ -103,7 +106,9 @@ def snapshot():
     return make_response({"message": "Invalid method type"}, HTTP.STATUS.BAD_REQUEST)
 
 
-@app.route("/aggregator", methods=[HTTP.METHOD.PUT])
+@app.route(
+    "/aggregator", methods=[HTTP.METHOD.PUT, HTTP.METHOD.GET, HTTP.METHOD.DELETE]
+)
 def aggregator():
     body: dict[str, Any] = request.get_json()
 
@@ -122,6 +127,25 @@ def aggregator():
                 )
             except KeyError as e:
                 logger.error("Aggregator request sent with incomplete body: %s", e)
+                return make_response(
+                    {"message": f"Missing key in body at {e}"}, HTTP.STATUS.BAD_REQUEST
+                )
+
+        case HTTP.METHOD.GET:
+            try:
+                aggregator_name = body["aggregator_name"]
+                aggregator_id, aggregator_dto = get_aggregator(aggregator_name)
+
+                return make_response(
+                    {
+                        "message": f"Successfully retrieved aggregator",
+                        "aggregator_id": aggregator_id,
+                        "aggregator": aggregator_dto.to_dict(),
+                    },
+                    HTTP.STATUS.OK,
+                )
+            except KeyError as e:
+                logger.error("No aggregator name found in body")
                 return make_response(
                     {"message": f"Missing key in body at {e}"}, HTTP.STATUS.BAD_REQUEST
                 )
