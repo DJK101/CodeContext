@@ -1,9 +1,7 @@
-import json
 import logging
 from typing import Any
 from flask import Flask, make_response, request
 
-from sqlalchemy.exc import IntegrityError
 
 import lib.helper.device as device_funcs
 import lib.helper.snapshot as metric_funcs
@@ -13,13 +11,11 @@ from lib.config import Config
 from lib.constants import HTTP
 from lib.datamodels import DTO_Aggregator, DTO_DataSnapshot, DTO_Device
 from lib.helper.aggregator import (
-    create_aggregator,
     create_aggregator_snapshot,
     delete_aggregator,
     get_aggregator,
-    get_or_create_aggregator,
 )
-from lib.models import Device, DeviceMetric, Log
+from lib.models import Log
 from lib.timed_session import TimedSession
 
 config = Config(__name__)

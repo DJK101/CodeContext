@@ -2,15 +2,10 @@ from datetime import datetime
 from logging import getLogger
 from typing import Any, List, Tuple
 
-from flask import Response, make_response, request
-from sqlalchemy import delete, func, select
-from sqlalchemy.exc import NoResultFound
-from sqlalchemy.orm import aliased
+from sqlalchemy import delete, select
 
-from lib.block_timer import BlockTimer
-from lib.constants import HTTP
-from lib.datamodels import DTO_Device, DTO_Metric
-from lib.models import Aggregator, Device, DeviceMetric, DeviceProperty, DeviceSnapshot
+from lib.datamodels import DTO_Device
+from lib.models import Device, DeviceMetric, DeviceProperty, DeviceSnapshot
 from lib.timed_session import TimedSession
 
 logger = getLogger(__name__)

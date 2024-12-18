@@ -1,14 +1,9 @@
 from dash import html, Dash, dcc, dash_table
 from flask import Flask
 from d_app.d_callbacks import init_callbacks
-import pandas as pd
-import plotly.express as px
 from lib.helper.device import get_device_names
 from lib.helper.metric import get_metric_names
-from lib.timed_session import TimedSession
 import logging
-from lib.models import Device
-from sqlalchemy import select
 
 logger = logging.getLogger(__name__)
 
