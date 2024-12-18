@@ -22,11 +22,11 @@ def create_aggregator(aggregator_data: DTO_Aggregator) -> int:
         return aggregator.id
 
 
-def get_aggregator(aggregator_name: str) -> Tuple[int, DTO_Aggregator]:
+def get_aggregator(aggregator_name: str, include_devices: bool) -> Tuple[int, DTO_Aggregator]:
     with TimedSession("get_device") as session:
         stmt = select(Aggregator).where(Aggregator.name == aggregator_name)
         aggregator = session.execute(stmt).scalar_one()
-        return (aggregator.id, aggregator.as_dto())
+        return (aggregator.id, aggregator.as_dto(include_devices))
 
 
 def update_aggregator(aggregator_data: DTO_Aggregator) -> DTO_Aggregator:
@@ -65,7 +65,7 @@ def create_aggregator_snapshot(aggregator_data: DTO_Aggregator) -> DTO_Aggregato
 def get_or_create_aggregator(aggregator_data: DTO_Aggregator) -> int:
     aggregator_id: int
     try:
-        return get_aggregator(aggregator_data.name)[0]
+        return get_aggregator(aggregator_data.name, include_devices=False)[0]
     except IntegrityError:
         return create_aggregator(aggregator_data)
 

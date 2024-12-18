@@ -133,8 +133,8 @@ def aggregator():
 
         case HTTP.METHOD.GET:
             try:
-                aggregator_name = body["aggregator_name"]
-                aggregator_id, aggregator_dto = get_aggregator(aggregator_name)
+                aggregator_name = body["name"]
+                aggregator_id, aggregator_dto = get_aggregator(aggregator_name, include_devices=True)
 
                 return make_response(
                     {
@@ -152,7 +152,7 @@ def aggregator():
 
         case HTTP.METHOD.DELETE:
             try:
-                aggregator_name = body["aggregator_name"]
+                aggregator_name = body["name"]
                 delete_aggregator(aggregator_name)
 
                 return make_response(

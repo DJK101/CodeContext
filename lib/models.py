@@ -71,9 +71,10 @@ class Aggregator(Base):
             "devices": [device.as_dict() for device in self.devices],
         }
 
-    def as_dto(self) -> DTO_Aggregator:
+    def as_dto(self, include_devices=False) -> DTO_Aggregator:
         return DTO_Aggregator(
-            name=self.name, devices=[device.as_dto() for device in self.devices]
+            name=self.name,
+            devices=[device.as_dto() for device in self.devices if include_devices],
         )
 
 
@@ -99,11 +100,19 @@ class Device(Base):
             "properties": [prop.as_dict() for prop in self.properties],
         }
 
-    def as_dto(self) -> DTO_Device:
+    def as_dto(
+        self, include_properties=False, include_data_snapshots=False
+    ) -> DTO_Device:
         return DTO_Device(
             name=self.name,
-            properties=[prop.as_dto() for prop in self.properties],
-            data_snapshots=[snapshot.as_dto() for snapshot in self.snapshots],
+            properties=[
+                prop.as_dto() for prop in self.properties if include_properties
+            ],
+            data_snapshots=[
+                snapshot.as_dto()
+                for snapshot in self.snapshots
+                if include_data_snapshots
+            ],
         )
 
 
@@ -146,11 +155,11 @@ class DeviceSnapshot(Base):
             "metrics": [metric.as_dict() for metric in self.metrics],
         }
 
-    def as_dto(self) -> DTO_DataSnapshot:
+    def as_dto(self, include_metrics=True) -> DTO_DataSnapshot:
         return DTO_DataSnapshot(
             timestamp_utc=self.timestamp_utc,
             utc_offset_mins=self.utc_offset_mins,
-            metrics=[metric.as_dto() for metric in self.metrics],
+            metrics=[metric.as_dto() for metric in self.metrics if include_metrics],
         )
 
     def local_time(self) -> datetime:
