@@ -1,5 +1,6 @@
 from datetime import datetime
 import logging
+from math import ceil
 from typing import Any, List
 
 import pandas as pd
@@ -70,7 +71,7 @@ def update_table(
     logger.debug("Count metrics: %s", count_metrics)
 
     logger.debug("Total metrics: %s", len(metrics_list))
-    total_pages = count_metrics // (page_size * 2)
+    total_pages = ceil(count_metrics / (page_size * 2))
     logger.debug("Total pages: %s", total_pages)
 
     columns = ["Device", "Recorded time"]
