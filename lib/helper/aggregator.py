@@ -40,8 +40,9 @@ def update_aggregator(aggregator_data: DTO_Aggregator) -> DTO_Aggregator:
 
 def delete_aggregator(aggregator_name: str) -> None:
     with TimedSession("delete_device") as session:
-        stmt = delete(Aggregator).where(Aggregator.name == aggregator_name)
-        session.execute(stmt)
+        stmt = select(Aggregator).where(Aggregator.name == aggregator_name)
+        aggregator = session.execute(stmt).scalar_one()
+        session.delete(aggregator)
 
 
 def create_aggregator_snapshot(aggregator_data: DTO_Aggregator) -> DTO_Aggregator:
