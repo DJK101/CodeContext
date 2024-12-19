@@ -59,7 +59,7 @@ def init_dash_app(flask_app: Flask) -> Dash:
                         dcc.Input(
                             id="start-time-display",
                             type="time",
-                            value=datetime.now().strftime("%H:%M:%S"),
+                            value=datetime.now().strftime("%H:%M"),
                             style={"marginLeft": "10px"},
                         ),
                     ],
@@ -79,7 +79,7 @@ def init_dash_app(flask_app: Flask) -> Dash:
                         dcc.Input(
                             id="end-time-display",
                             type="time",
-                            value=datetime.now().strftime("%H:%M:%S"),
+                            value=datetime.now().strftime("%H:%M"),
                             style={"marginLeft": "10px"},
                         ),
                     ],

@@ -37,7 +37,7 @@ def get_count_of_metrics(
             query = query.filter(Device.name == device_name)
         if start_datetime:
             query = query.filter(DeviceSnapshot.timestamp_utc <= start_datetime)
-        if device_name:
+        if end_datetime:
             query = query.filter(DeviceSnapshot.timestamp_utc >= end_datetime)
         count = query.scalar()
 

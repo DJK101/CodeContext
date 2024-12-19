@@ -55,8 +55,8 @@ def update_table(
     end_time_str: str,
 ):
     logger.debug("start time: %s start date: %s", start_time_str, start_date_str)
-    start_time = datetime.strptime(start_date_str + start_time_str, "%Y-%m-%d%H:%M:%S")
-    end_time = datetime.strptime(end_date_str + end_time_str, "%Y-%m-%d%H:%M:%S")
+    start_time = datetime.strptime(start_date_str + " " + start_time_str, "%Y-%m-%d %H:%M")
+    end_time = datetime.strptime(end_date_str + " " + end_time_str, "%Y-%m-%d %H:%M")
     # page index starts from 0, so we have to increment by one
     metrics_list = get_all_device_metrics(
         device_name,
@@ -66,11 +66,11 @@ def update_table(
         page_size=page_size * 2,
     )
 
-    total_metrics = get_count_of_metrics(
-        device_name, start_datetime=start_time, end_datetime=end_time
-    )
-    logger.debug("Total metrics: %s", total_metrics)
-    total_pages = total_metrics // page_size
+    count_metrics = get_count_of_metrics(device_name)
+    logger.debug("Count metrics: %s", count_metrics)
+
+    logger.debug("Total metrics: %s", len(metrics_list))
+    total_pages = count_metrics // (page_size * 2)
     logger.debug("Total pages: %s", total_pages)
 
     columns = ["Device", "Recorded time"]
@@ -99,8 +99,10 @@ def update_table(
         total_pages,
     )
 
+
 def agent_action(n_clicks: int):
     toggle()
+
 
 def init_callbacks(app: Dash):
 
